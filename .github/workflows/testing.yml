@@ -49,7 +49,7 @@ jobs:
         set -x
         pip install -U pip
         pip install -U .[dev]
-    - uses: intel/project-example-for-python@github-action-python-run-unittests
+    - uses: bitechdev/python-postgresql-modules@github-action-python-run-unittests
       with:
         tests: 'tests/'
         coverage: true
