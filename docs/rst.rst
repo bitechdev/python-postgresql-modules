@@ -22,9 +22,9 @@ I'm a link to the :ref:`feedface` section.
 
 I'm a link to `an awesome open source project <https://intel.github.io/dffml>`_
 
-This is a link to a method :meth:`pgsql-utils.aclass.MiscClass.load`
+This is a link to a method :meth:`pgsql_utils.aclass.MiscClass.load`
 
-This is a link to a class :class:`pgsql-utils.importable.SomeClass`
+This is a link to a class :class:`pgsql_utils.importable.SomeClass`
 
 .. code-block:: python
 

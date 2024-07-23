@@ -26,12 +26,12 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # -- Project information -----------------------------------------------------
 
-project = "pgsql-utils"
+project = "pgsql_utils"
 author = project + " Authors"
 copyright = "2024 - %d, %s" % (datetime.datetime.today().year, author)
 
 # The short X.Y version
-version = importlib_metadata_version("pgsql-utils")
+version = importlib_metadata_version("pgsql_utils")
 # The full version, including alpha/beta/rc tags
 release = version
 

@@ -1,6 +1,6 @@
 [run]
 source =
-    pgsql-utils
+    pgsql_utils
     tests
 branch = True
 
