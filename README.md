@@ -10,7 +10,7 @@ Python Postgre SQL Modules
 .. code-block:: console
 
     $ pip install -U setuptools pip wheel
-    $ pip install "https://github.com/bitechdev/python-postgresql-modules/archive/refs/heads/master.zip#egg=utils"
+    $ pip install "https://github.com/bitechdev/python-postgresql-modules/archive/refs/heads/master.zip#egg=pgsql-utils"
 
 ## Legal
 

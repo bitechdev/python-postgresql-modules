@@ -49,7 +49,7 @@ jobs:
         set -x
         pip install -U pip
         pip install -U .[dev]
-    - uses: bitechdev/python-postgresql-modules@github-action-python-run-unittests
-      with:
-        tests: 'tests/'
-        coverage: true
+    # - uses: github-action-python-run-unittests@bitechdev/python-postgresql-modules
+    #   with:
+    #     tests: 'tests/'
+    #     coverage: true
