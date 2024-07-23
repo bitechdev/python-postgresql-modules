@@ -12,6 +12,9 @@ Python Postgre SQL Modules
     $ pip install -U setuptools pip wheel
     $ pip install "git+https://github.com/bitechdev/python-postgresql-modules.git#egg=pgsql_utils"
 
+.. Examples:
+from pgsql_utils.util.string import n2w,ordinalstr
+
 ## Legal
 
 See licence file

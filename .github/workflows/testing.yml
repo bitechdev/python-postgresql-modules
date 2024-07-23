@@ -49,6 +49,10 @@ jobs:
         set -x
         pip install -U pip
         pip install -U .[dev]
+    - name: Test with tox
+      run: |
+        tox
+        
     # - uses: github-action-python-run-unittests@bitechdev/python-postgresql-modules
     #   with:
     #     tests: 'tests/'

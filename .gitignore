@@ -19,3 +19,6 @@ wheelhouse/
 *.db
 htmlcov/
 built_html_docs/
+/.tox
+/venv/
+.venv/
