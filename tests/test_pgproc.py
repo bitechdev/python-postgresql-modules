@@ -13,8 +13,8 @@ class TestPlpyOperations(unittest.TestCase):
         plpy.error("Error Test")
         self.assertTrue(True)
 
-    def test_warn(self):
-        plpy.warn("Warn Test")
+    def test_warning(self):
+        plpy.warning("Warn Test")
         self.assertTrue(True)
 
     def test_get_err_msg(self):
