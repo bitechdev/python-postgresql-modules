@@ -1,52 +1,61 @@
-def notice(msg,**kwargs):
-    print("plpy -> notice: ", msg,kwargs)
+def notice(msg, **kwargs):
+    print("plpy -> notice: ", msg, kwargs)
 
 
-def error(msg,**kwargs):
-    print("plpy -> error: ", msg,kwargs)
+def error(msg, **kwargs):
+    print("plpy -> error: ", msg, kwargs)
 
 
-def debug(msg,**kwargs):
-    print("plpy -> error: ", msg,kwargs)
+def debug(msg, **kwargs):
+    print("plpy -> error: ", msg, kwargs)
 
 
-def warning(msg,**kwargs):
-    print("plpy -> warning: ", msg,kwargs)
+def warning(msg, **kwargs):
+    print("plpy -> warning: ", msg, kwargs)
 
-def log(msg,**kwargs):
-    print("plpy -> log: ", msg,kwargs)
 
-def fatal(msg,**kwargs):
-    print("plpy -> fatal: ", msg,kwargs)    
+def log(msg, **kwargs):
+    print("plpy -> log: ", msg, kwargs)
 
-def info(msg,**kwargs):
-    print("plpy -> info: ", msg,kwargs)    
 
-def fatal(msg,**kwargs):
-    print("plpy -> fatal: ", msg,kwargs)    
+def fatal(msg, **kwargs):
+    print("plpy -> fatal: ", msg, kwargs)
+
+
+def info(msg, **kwargs):
+    print("plpy -> info: ", msg, kwargs)
+
+
+def fatal(msg, **kwargs):
+    print("plpy -> fatal: ", msg, kwargs)
 
 
 def quote_ident(str):
     print("plpy -> quote_ident: ", str)
     return '"{}"'.format(str)
 
+
 def quote_nullable(str):
     print("plpy -> quote_nullable: ", str)
     return '"{}"'.format(str)
 
+
 def quote_literal(str):
     print("plpy -> quote_literal: ", str)
     return '"{}"'.format(str)
+
 
 def execute(arguments):
     print("plpy -> execute: ", arguments)
     row = Row({})
     return row
 
+
 def prepare(arguments):
     print("plpy -> prepare: ", arguments)
     row = Row({})
     return row
+
 
 def cursor(arguments):
     print("plpy -> cursor: ", arguments)
@@ -56,6 +65,7 @@ def cursor(arguments):
 
 class SPIError(Exception):
     """Exception for SPIError class"""
+
     pass
 
 
@@ -113,7 +123,6 @@ class Row(dict):
             return True
         else:
             return False
-
 
 
 class ResultSet:
