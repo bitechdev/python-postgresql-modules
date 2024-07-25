@@ -1,33 +1,33 @@
-def notice(msg, **kwargs):
-    print("plpy -> notice: ", msg, kwargs)
+def notice(msg, *args):
+    print("plpy -> notice: ", msg, args)
 
 
-def error(msg, **kwargs):
-    print("plpy -> error: ", msg, kwargs)
+def error(msg, *args):
+    print("plpy -> error: ", msg, args)
 
 
-def debug(msg, **kwargs):
-    print("plpy -> error: ", msg, kwargs)
+def debug(msg, *args):
+    print("plpy -> error: ", msg, args)
 
 
-def warning(msg, **kwargs):
-    print("plpy -> warning: ", msg, kwargs)
+def warning(msg, *args):
+    print("plpy -> warning: ", args)
 
 
-def log(msg, **kwargs):
-    print("plpy -> log: ", msg, kwargs)
+def log(msg, *args):
+    print("plpy -> log: ", msg, args)
 
 
-def fatal(msg, **kwargs):
-    print("plpy -> fatal: ", msg, kwargs)
+def fatal(msg, *args):
+    print("plpy -> fatal: ", msg, args)
 
 
-def info(msg, **kwargs):
-    print("plpy -> info: ", msg, kwargs)
+def info(msg, *args):
+    print("plpy -> info: ", msg, args)
 
 
-def fatal(msg, **kwargs):
-    print("plpy -> fatal: ", msg, kwargs)
+def fatal(msg, *args):
+    print("plpy -> fatal: ", msg, args)
 
 
 def quote_ident(str):

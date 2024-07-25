@@ -3,6 +3,10 @@
 Python Postgre SQL Modules
 ##########################
 
+##### Build Status:
+
+[![Tests](https://github.com/bitechdev/python-postgresql-modules/actions/workflows/testing.yml/badge.svg)](https://github.com/bitechdev/python-postgresql-modules/actions/workflows/testing.yml)
+
 ###Install From Git Repo
 
 ---
