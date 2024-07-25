@@ -75,7 +75,7 @@ def check_merge_inputs(obj, p_template_filename, p_src_filename):
 #
 
 
-def execute_sql(
+def execute_merge_sql(
     p_mode,
     p_template_filename,
     p_src_filename,
