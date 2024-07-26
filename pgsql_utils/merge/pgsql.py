@@ -6,7 +6,7 @@ from ..pgproc.debug import sqlmsg, get_err_msg
 import sys, os, traceback, json
 
 if "plpy" not in globals():
-    import pgsql_utils.pgproc.fake_plpy as plpy
+    import pgsql_utils.pgproc.wrap_plpy as plpy
 #
 
 

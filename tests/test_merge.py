@@ -1,6 +1,6 @@
 import unittest
 import os
-import pgsql_utils.pgproc.fake_plpy as plpy
+import pgsql_utils.pgproc.wrap_plpy as plpy
 from pgsql_utils.merge import execute_merge_sql
 import json, io
 

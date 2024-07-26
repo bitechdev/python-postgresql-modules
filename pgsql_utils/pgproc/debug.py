@@ -1,9 +1,13 @@
+thisGlobals = globals()
+
+
 def has_plpy():
-    return "plpy" in globals()
+    return "plpy" in thisGlobals
 
 
 def set_plpy(p_plpy):
-    globals()["plpy"] = p_plpy
+    thisGlobals["plpy"] = p_plpy
+    # globals()["plpy"] = p_plpy
 
 
 def get_err_msg(p_funcname="function_name", p_errmsg="", p_errdetail="", p_context=""):

@@ -1,6 +1,6 @@
 import unittest
 
-import pgsql_utils.pgproc.fake_plpy as plpy
+import pgsql_utils.pgproc.wrap_plpy as plpy
 from pgsql_utils.pgproc.debug import get_err_msg, sqlmsg, set_plpy
 
 set_plpy(plpy)
