@@ -23,7 +23,7 @@ def get_err_msg(p_funcname="function_name", p_errmsg="", p_errdetail="", p_conte
             plpy.quote_literal(p_errdetail),
         )
     )
-    if rs is not None and rs.get(0) is not None:
+    if rs is not None and rs[0] is not None:
         errmsg = str(rs[0]["errmsg"])
 
     return errmsg

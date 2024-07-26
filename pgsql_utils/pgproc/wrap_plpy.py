@@ -87,7 +87,7 @@ def execute(arguments):
     if has_plpy():
         return plpy.execute(arguments)
     print("plpy -> execute: ", arguments)
-    row = {} # Row({})
+    row = {}  # Row({})
     return row
 
 
@@ -95,7 +95,7 @@ def prepare(arguments):
     if hasPlpy:
         return plpy.prepare(arguments)
     print("plpy -> prepare: ", arguments)
-    row = {} # Row({})
+    row = {}  # Row({})
     return row
 
 
