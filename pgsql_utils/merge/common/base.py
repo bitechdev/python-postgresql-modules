@@ -189,8 +189,6 @@ class MergeTool(object):
 
     #
 
-    
-
     def buidAliasMap(s):
         """
         Rebuild alias maps from declare to use

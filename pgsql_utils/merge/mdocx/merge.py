@@ -400,7 +400,7 @@ class MergeToolDocX(MergeTool):
         return alias_tags
 
     #
-    
+
     def peek_docx(s, p_inc_old=False):
         tags = {}
         try:

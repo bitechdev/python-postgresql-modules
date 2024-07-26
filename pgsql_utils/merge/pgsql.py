@@ -33,7 +33,9 @@ MODES = (
 )
 
 
-def check_merge_inputs(obj, p_template_filename,p_template_blob, p_src_filename,p_jsonset=None):
+def check_merge_inputs(
+    obj, p_template_filename, p_template_blob, p_src_filename, p_jsonset=None
+):
     """Check if the input data combination is correct"""
 
     try:
@@ -68,7 +70,9 @@ def check_merge_inputs(obj, p_template_filename,p_template_blob, p_src_filename,
             obj.inputdata = json.loads(p_jsonset)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
-        raise MergeToolError("Invalid Input Data: {}".format(e), "check_merge_inputs", exc_tb)
+        raise MergeToolError(
+            "Invalid Input Data: {}".format(e), "check_merge_inputs", exc_tb
+        )
     #
 
 
@@ -103,7 +107,9 @@ def execute_merge_sql(
         if objMerge is not None:
             objMerge.mode = p_mode
             objMerge.programmode = p_programmode
-            check_merge_inputs(objMerge, p_template_filename,p_template_blob, p_src_filename)
+            check_merge_inputs(
+                objMerge, p_template_filename, p_template_blob, p_src_filename
+            )
             p_result = objMerge.execute()
         #
 
