@@ -1,63 +1,102 @@
+hasPlpy = False
+if "plpy" in globals():
+    hasPlpy = True
+#
+
+
 def notice(msg, *args):
+    if hasPlpy:
+        return plpy.notice(msg, args)
+
     print("plpy -> notice: ", msg, args)
 
 
 def error(msg, *args):
+    if hasPlpy:
+        return plpy.error(msg, args)
+
     print("plpy -> error: ", msg, args)
 
 
 def debug(msg, *args):
+    if hasPlpy:
+        return plpy.debug(msg, args)
+
     print("plpy -> error: ", msg, args)
 
 
 def warning(msg, *args):
+    if hasPlpy:
+        return plpy.warning(msg, args)
+
     print("plpy -> warning: ", args)
 
 
 def log(msg, *args):
+    if hasPlpy:
+        return plpy.log(msg, args)
+
     print("plpy -> log: ", msg, args)
 
 
 def fatal(msg, *args):
+    if hasPlpy:
+        return plpy.fatal(msg, args)
+
     print("plpy -> fatal: ", msg, args)
 
 
 def info(msg, *args):
+    if hasPlpy:
+        return plpy.info(msg, args)
+
     print("plpy -> info: ", msg, args)
 
 
-def fatal(msg, *args):
-    print("plpy -> fatal: ", msg, args)
+def quote_ident(pStr):
+    if hasPlpy:
+        return plpy.quote_ident(pStr)
+
+    print("plpy -> quote_ident: ", pStr)
+    return '"{}"'.format(pStr)
 
 
-def quote_ident(str):
-    print("plpy -> quote_ident: ", str)
-    return '"{}"'.format(str)
+def quote_nullable(pStr):
+    if hasPlpy:
+        return plpy.quote_nullable(pStr)
+
+    print("plpy -> quote_nullable: ", pStr)
+    return '"{}"'.format(pStr)
 
 
-def quote_nullable(str):
-    print("plpy -> quote_nullable: ", str)
-    return '"{}"'.format(str)
+def quote_literal(pStr):
+    if hasPlpy:
+        return plpy.quote_literal(pStr)
 
-
-def quote_literal(str):
-    print("plpy -> quote_literal: ", str)
-    return '"{}"'.format(str)
+    print("plpy -> quote_literal: ", pStr)
+    return '"{}"'.format(pStr)
 
 
 def execute(arguments):
+    if hasPlpy:
+        return plpy.execute(arguments)
     print("plpy -> execute: ", arguments)
     row = Row({})
     return row
 
 
 def prepare(arguments):
+    if hasPlpy:
+        return plpy.prepare(arguments)
     print("plpy -> prepare: ", arguments)
     row = Row({})
     return row
 
 
 def cursor(arguments):
+    if hasPlpy:
+        return plpy.cursor(arguments)
+
     print("plpy -> cursor: ", arguments)
 
     return {}

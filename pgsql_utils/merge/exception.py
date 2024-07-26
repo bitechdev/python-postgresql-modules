@@ -1,3 +1,4 @@
+import traceback
 class MergeToolError(Exception):
     def __init__(s, p_msg, p_funcname="", p_traceback=None):
         if p_funcname != "":

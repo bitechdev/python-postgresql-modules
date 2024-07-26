@@ -1,8 +1,9 @@
 import unittest
 
 import pgsql_utils.pgproc.fake_plpy as plpy
-from pgsql_utils.pgproc.debug import get_err_msg, sqlmsg
+from pgsql_utils.pgproc.debug import get_err_msg, sqlmsg, set_plpy
 
+set_plpy(plpy)
 
 class TestPlpyOperations(unittest.TestCase):
     def test_notice(self):

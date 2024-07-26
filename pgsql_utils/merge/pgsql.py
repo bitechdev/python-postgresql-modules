@@ -3,7 +3,7 @@ from .mdocx.merge import MergeToolDocX
 from .html.merge import MergeToolHTML
 from .text.merge import MergeToolTEXT
 from ..pgproc.debug import sqlmsg, get_err_msg
-import sys, os, traceback
+import sys, os, traceback, json
 
 if "plpy" not in globals():
     import pgsql_utils.pgproc.fake_plpy as plpy
@@ -33,7 +33,7 @@ MODES = (
 )
 
 
-def check_merge_inputs(obj, p_template_filename, p_src_filename):
+def check_merge_inputs(obj, p_template_filename,p_template_blob, p_src_filename,p_jsonset=None):
     """Check if the input data combination is correct"""
 
     try:
@@ -43,9 +43,9 @@ def check_merge_inputs(obj, p_template_filename, p_src_filename):
 
         if p_template_filename is not None and len(p_template_filename) > 0:
             obj.srcfilename = p_template_filename
-            p_template_filename = oobj.path.normpath(p_template_filename)
+            p_template_filename = os.path.normpath(p_template_filename)
 
-            if p_template_filename is None or not oobj.path.exists(p_template_filename):
+            if p_template_filename is None or not os.path.exists(p_template_filename):
                 if obj.mode.lower().find("mocktest") < 0:
                     raise MergeToolError(
                         "The template file given does not exist. Filename: {}".format(
@@ -58,17 +58,17 @@ def check_merge_inputs(obj, p_template_filename, p_src_filename):
 
         if "merge" in obj.mode:
             if p_src_filename is not None and len(p_src_filename) > 0:
-                p_src_filename = oobj.path.normpath(p_src_filename)
+                p_src_filename = os.path.normpath(p_src_filename)
             #
         #
         if p_src_filename is not None and len(p_src_filename) > 0:
             obj.destfilename = p_src_filename
         #
-
-        obj.inputdata = json.loads(p_jsonset)
+        if p_jsonset is not None:
+            obj.inputdata = json.loads(p_jsonset)
     except Exception as e:
-        exc_type, exc_obj, exc_tb = syobj.exc_info()
-        raise MergeToolError("Invalid Input Data: {}".format(e), "checkinputs", exc_tb)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        raise MergeToolError("Invalid Input Data: {}".format(e), "check_merge_inputs", exc_tb)
     #
 
 
@@ -97,11 +97,13 @@ def execute_merge_sql(
             objMerge = MergeToolHTML()
         elif "txt" in p_mode.lower():
             objMerge = MergeToolTEXT()
-        #
+        else:
+            raise MergeToolError("Invalid mode: {}".format(p_mode))
+
         if objMerge is not None:
             objMerge.mode = p_mode
             objMerge.programmode = p_programmode
-            check_merge_inputs(objMerge, p_template_filename, p_src_filename)
+            check_merge_inputs(objMerge, p_template_filename,p_template_blob, p_src_filename)
             p_result = objMerge.execute()
         #
 
