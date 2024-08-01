@@ -1,3 +1,7 @@
+### Copyright (c) 2024 Bitech Systems. All rights reserved.
+### The code and materials in this repository are the exclusive property of Bitech Systems and its associated companies and are protected by copyright law.
+### Please refer to the license details in the package.
+
 from .exception import MergeToolWarning, MergeToolError
 from .mdocx.merge import MergeToolDocX
 from .html.merge import MergeToolHTML
