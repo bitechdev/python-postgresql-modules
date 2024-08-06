@@ -42,8 +42,62 @@ import copy
 import datetime
 import math
 
-INCH_TO_PIXEL = 0.0104166667
+from ..tags import (
+    TAG_S_SP,
+    TAG_E_SP,
+    TAG_S,
+    TAG_E,
+    TAG_S_OLD,
+    TAG_E_OLD,
+    TAG_S_EVAL,
+    TAG_E_EVAL,
+    TAG_S_INPLACE,
+    TAG_E_INPLACE,
+    TAG_S_ALIASDECL,
+    TAG_E_ALIASDECL,
+    TAG_D_ALIASDECL,
+    TAG_S_ALIASUSE,
+    TAG_E_ALIASUSE,
+    TAG_S_POSTOP,
+    TAG_E_POSTOP,
+    TAG_S_TBLM,
+    TAG_E_TBLM,
+    TAG_ERR,
+    STR_ERR,
+    TAG_SPLT,
+    TAG_RULESPLT,
+    STR_TAG_RMBD,
+    STR_TAG_RMBC,
+    STR_TAG_RMDR,
+    STR_TAG_FREETBL,
+    STR_TAG_ESIGN,
+    STR_TAG_LIMITROW,
+    STR_TAG_TBLSEARCH_RM,
+    TTYP_ROOT,
+    TTYP_FIELD,
+    TTYP_TBLFIELD,
+    TTYP_TBLROOT,
+    TTYP_AGGFIELD,
+    TTYP_PIC,
+    TTYP_SPECIAL,
+    TTYP_FILTER,
+    TTYP_CONDITIONAL,
+    TTYP_DOCREPLACE,
+    TTYP_EMBEDHTML,
+    OP_TAGS,
+    CELL_OP_TAGS,
+    TAG_COND_RMR,
+    TAG_COND_RMC,
+    TAG_COND_CLR,
+    TAG_COND_RTBL,
+    TAG_COND_TBL_DISTINCT,
+    TAG_COND_RMP,
+    INCH_TO_PIXEL,
+)
 
+if "plpy" not in globals():
+    import pgsql_utils.pgproc.wrap_plpy as plpy
+#
 
 class MergeToolDocX(MergeTool):
     """Bitech DocX Merge Tool"""
@@ -88,7 +142,7 @@ class MergeToolDocX(MergeTool):
         elif s.mode == "convert_docx":
             s.convert_docx()
         elif s.mode == "convertonly_docx":
-            s.convertonly_docx(s.TAG_S_SP, s.TAG_E_SP)
+            s.convertonly_docx(TAG_S_SP, TAG_E_SP)
 
         elif s.mode == "merge_docx":
             s.merge_docx()
@@ -210,8 +264,8 @@ class MergeToolDocX(MergeTool):
                                 # opdata = s.str_value_replace(r.text, None, p_fields)
                                 # r.text = opdata["str"]
                             elif p_action.lower() == "convert":
-                                r.text = r.text.replace(s.TAG_S_SP, s.TAG_S)
-                                r.text = r.text.replace(s.TAG_E_SP, s.TAG_E)
+                                r.text = r.text.replace(TAG_S_SP, TAG_S)
+                                r.text = r.text.replace(TAG_E_SP, TAG_E)
                             elif p_action.lower() == "list":
                                 tags.extend(s.peek_str(r.text, True))
                             #
@@ -222,8 +276,8 @@ class MergeToolDocX(MergeTool):
                             # opdata = s.str_value_replace(p.text, None, p_fields)
                             # p.text = opdata["str"]
                         elif p_action.lower() == "convert":
-                            p.text = p.text.replace(s.TAG_S_SP, s.TAG_S)
-                            p.text = p.text.replace(s.TAG_E_SP, s.TAG_E)
+                            p.text = p.text.replace(TAG_S_SP, TAG_S)
+                            p.text = p.text.replace(TAG_E_SP, TAG_E)
                         elif p_action.lower() == "list":
                             tags.extend(s.peek_str(p.text, True))
                         #
@@ -325,7 +379,7 @@ class MergeToolDocX(MergeTool):
                 ops = []
                 if len(tagbody) > 1:
                     opsplitPos = tagbody.find(":")
-                    if opsplitPos >= 0 and p_tag_s != s.TAG_S_ALIASDECL:
+                    if opsplitPos >= 0 and p_tag_s != TAG_S_ALIASDECL:
                         # ops tags only work in use situations
                         # tagbody = tagbody[:opsplitPos]
                         tagname = str(tagbody[:opsplitPos]).lstrip().rstrip()
@@ -350,8 +404,8 @@ class MergeToolDocX(MergeTool):
                         "datindex": 0,
                     }
 
-                    if p_tag_s == s.TAG_S_ALIASDECL:
-                        parts = str(tagbody).split(s.TAG_D_ALIASDECL, 1)
+                    if p_tag_s == TAG_S_ALIASDECL:
+                        parts = str(tagbody).split(TAG_D_ALIASDECL, 1)
                         record["type"] = "declare"
                         record["name"] = str(parts[0]).lstrip().rstrip()
                         record["value"] = parts[1]
@@ -370,16 +424,16 @@ class MergeToolDocX(MergeTool):
         res = None
         res1 = None
         if p_mode == "peekuse":
-            res1 = search_str(p_str, s.TAG_S_ALIASUSE, s.TAG_E_ALIASUSE, 0)
+            res1 = search_str(p_str, TAG_S_ALIASUSE, TAG_E_ALIASUSE, 0)
             if res1 == "":
                 return
         elif p_mode == "peekdeclare":
-            res = search_str(p_str, s.TAG_S_ALIASDECL, s.TAG_E_ALIASDECL, 0)
+            res = search_str(p_str, TAG_S_ALIASDECL, TAG_E_ALIASDECL, 0)
             if res == "":
                 return
         else:
-            res = search_str(p_str, s.TAG_S_ALIASDECL, s.TAG_E_ALIASDECL, 0)
-            res1 = search_str(p_str, s.TAG_S_ALIASUSE, s.TAG_E_ALIASUSE, 0)
+            res = search_str(p_str, TAG_S_ALIASDECL, TAG_E_ALIASDECL, 0)
+            res1 = search_str(p_str, TAG_S_ALIASUSE, TAG_E_ALIASUSE, 0)
             if res == "" and res1 == "":
                 return
         #
@@ -761,7 +815,7 @@ class MergeToolDocX(MergeTool):
             s.peek_alias_str(p_obj.text, p_tblid, "peekuse", p_obj, p_idx)
 
             if (
-                not p_obj.text.find(s.TAG_S) >= 0
+                not p_obj.text.find(TAG_S) >= 0
             ):  # abort this line/object, we have not tags.
                 opdata["error"] = "No tags found."
                 return opdata
@@ -771,35 +825,35 @@ class MergeToolDocX(MergeTool):
                 fields = s.inputdata.get("fields")
             #
 
-            if p_obj.text.find(s.TAG_S + s.STR_TAG_RMBD + s.TAG_E) >= 0:
+            if p_obj.text.find(TAG_S + STR_TAG_RMBD + TAG_E) >= 0:
                 opdata["rmblnk"] = 1
             #
 
-            if p_obj.text.find(s.TAG_S + s.STR_TAG_RMBC + s.TAG_E) >= 0:
+            if p_obj.text.find(TAG_S + STR_TAG_RMBC + TAG_E) >= 0:
                 opdata["rmblnkcol"] = 1
             #
 
-            if p_obj.text.find(s.TAG_S + s.STR_TAG_RMDR + s.TAG_E) >= 0:
+            if p_obj.text.find(TAG_S + STR_TAG_RMDR + TAG_E) >= 0:
                 opdata["rmdr"] = 1
             #
 
-            if p_obj.text.find(s.TAG_S + s.STR_TAG_LIMITROW) >= 0:
-                istart = p_obj.text.find(s.TAG_S + s.STR_TAG_LIMITROW)
-                iend = p_obj.text.find(s.TAG_E, istart)
-                parts = (p_obj.text[istart + len(s.TAG_S) : iend]).split(":")
+            if p_obj.text.find(TAG_S + STR_TAG_LIMITROW) >= 0:
+                istart = p_obj.text.find(TAG_S + STR_TAG_LIMITROW)
+                iend = p_obj.text.find(TAG_E, istart)
+                parts = (p_obj.text[istart + len(TAG_S) : iend]).split(":")
                 if len(parts) > 1:
                     opdata["limitrow"] = tryInt(parts[1])
                 else:
                     opdata["limitrow"] = 1
                 #
                 # sqlmsg("Table limitrow: {} -> {} opdata:{} ".format(p_obj.text,parts, opdata ))
-                p_obj.text = p_obj.text[:istart] + p_obj.text[iend + len(s.TAG_E) :]
+                p_obj.text = p_obj.text[:istart] + p_obj.text[iend + len(TAG_E) :]
             #
 
-            startSearch = p_obj.text.find(s.TAG_S + s.STR_TAG_TBLSEARCH_RM)
+            startSearch = p_obj.text.find(TAG_S + STR_TAG_TBLSEARCH_RM)
             if startSearch >= 0:
-                firstpartLen = len(s.TAG_S + s.STR_TAG_TBLSEARCH_RM)
-                startEnd = p_obj.text.find(s.TAG_E, startSearch + firstpartLen)
+                firstpartLen = len(TAG_S + STR_TAG_TBLSEARCH_RM)
+                startEnd = p_obj.text.find(TAG_E, startSearch + firstpartLen)
                 if startEnd >= 0:
                     foundtext = str(p_obj.text)[startSearch + firstpartLen : startEnd]
                     opvalues = foundtext.split(":")
@@ -843,7 +897,7 @@ class MergeToolDocX(MergeTool):
                     if p_obj.text is None:
                         break
                     if (
-                        not p_obj.text.find(s.TAG_S) >= 0
+                        not p_obj.text.find(TAG_S) >= 0
                     ):  # abort this line/object, we have not tags.
                         # plpy.notice('No more tags, last check for {}'.format(tag));
                         break  # this is a funky break to exit 2nd attempt. Works with check above, don't remove.
@@ -877,8 +931,8 @@ class MergeToolDocX(MergeTool):
 
                     ### E-Sign tags
                     if (
-                        p_obj.text.lower().find(s.STR_TAG_ESIGN) >= 1
-                        and tag.lower().find(s.STR_TAG_ESIGN) >= 0
+                        p_obj.text.lower().find(STR_TAG_ESIGN) >= 1
+                        and tag.lower().find(STR_TAG_ESIGN) >= 0
                     ):
                         formattype = "esign"
                         # sqlmsg("Found E-Sign Tag: {} val:{} T:{}".format(tag,val, p_obj.text))
@@ -890,7 +944,7 @@ class MergeToolDocX(MergeTool):
                         if val is not None and val.find("!skip") >= 0:
                             plpy.notice("Esign Tag is skipped, {}".format(tag))
                             # these are used by docminer and must stay.
-                        elif val is not None and tagtype == s.TTYP_PIC:
+                        elif val is not None and tagtype == TTYP_PIC:
                             plpy.notice(
                                 "Esign Tag is a picture,leave it be for picture replace, {}".format(
                                     tag
@@ -910,25 +964,25 @@ class MergeToolDocX(MergeTool):
 
                         continue
                     ##
-                    if tagtype == s.TTYP_PIC:
+                    if tagtype == TTYP_PIC:
                         plpy.notice("Picture Tag, {}  tagtype: {}".format(tag, tagtype))
                         # s.cleanupList.append({"obj": p_obj, "tag":tag })
                         continue
                     #
-                    if tagtype == s.TTYP_TBLROOT:
+                    if tagtype == TTYP_TBLROOT:
                         continue  # we do not handle inner values here.
-                    if tagtype == s.TTYP_CONDITIONAL:
+                    if tagtype == TTYP_CONDITIONAL:
                         if p_obj.text.find(tag) >= 0:
                             if tryInt(tagvalue) > 0:
                                 if tag.find("rmr!") >= 0:
-                                    val = s.TAG_COND_RMR
+                                    val = TAG_COND_RMR
                                     # sqlmsg("Will Remove Row: {} , {}, p_str={}".format(tag, tagvalue, p_obj.text))
                                 elif tag.find("rmc!") >= 0:
-                                    val = s.TAG_COND_RMC
+                                    val = TAG_COND_RMC
                                 elif tag.find("cc!") >= 0:
-                                    val = s.TAG_COND_CLR
+                                    val = TAG_COND_CLR
                                 elif tag.find("!rmp!") >= 0:
-                                    val = s.TAG_COND_RMP
+                                    val = TAG_COND_RMP
                                 else:
                                     continue
                                 #
@@ -940,12 +994,12 @@ class MergeToolDocX(MergeTool):
                     #
                     if (
                         val
-                        and tagtype in (s.TTYP_FIELD, s.TTYP_TBLFIELD)
-                        and val.find(s.TAG_S_INPLACE) >= 0
+                        and tagtype in (TTYP_FIELD, TTYP_TBLFIELD)
+                        and val.find(TAG_S_INPLACE) >= 0
                         and p_obj.text.find(tag) >= 0
                     ):
-                        filename = val.replace(s.TAG_S_INPLACE, "").replace(
-                            s.TAG_E_INPLACE, ""
+                        filename = val.replace(TAG_S_INPLACE, "").replace(
+                            TAG_E_INPLACE, ""
                         )
                         # p_obj.text = p_obj.text.replace(tag, "")
                         # sqlmsg("InPlace {} for {}".format(filename, p_obj.text))
@@ -955,16 +1009,13 @@ class MergeToolDocX(MergeTool):
 
                     if (
                         val
-                        and tagtype in (s.TTYP_FIELD, s.TTYP_TBLFIELD)
+                        and tagtype in (TTYP_FIELD, TTYP_TBLFIELD)
                         and val.find("mergetype") >= 0
                         and val.find("line") >= 0
                         and p_obj.text.find(tag) >= 0
                     ):
 
-                        if (
-                            s.cleanMissing
-                            and not tag.lower().find(s.STR_TAG_ESIGN) >= 0
-                        ):
+                        if s.cleanMissing and not tag.lower().find(STR_TAG_ESIGN) >= 0:
                             p_obj.text = p_obj.text.replace(tag, "")
                         #
                         s.docxcitation(p_obj, p_parent, val)
@@ -977,7 +1028,7 @@ class MergeToolDocX(MergeTool):
                         break
                     #
 
-                    if tagtype == s.TTYP_DOCREPLACE:
+                    if tagtype == TTYP_DOCREPLACE:
                         if s.cleanMissing:
                             p_obj.text = p_obj.text.replace(tag, "")
                         #
@@ -1244,7 +1295,7 @@ class MergeToolDocX(MergeTool):
                 if type(tagdata) is not dict:
                     continue
                 validpicture = True
-                if tryInt(tagdata.get("type", "0")) != s.TTYP_PIC:
+                if tryInt(tagdata.get("type", "0")) != TTYP_PIC:
                     validpicture = False
                 #
                 base64str = tagdata.get("value", "")
@@ -1312,8 +1363,8 @@ class MergeToolDocX(MergeTool):
         applyError = False
         errorstr = ""
 
-        # i_s = p_obj.text.lower().find(s.STR_ERR)
-        # i_e = i_s+len(s.STR_ERR)
+        # i_s = p_obj.text.lower().find(STR_ERR)
+        # i_e = i_s+len(STR_ERR)
         # if i_s > 0 and len(p_obj.text) >= i_e:
         # p_obj.text = ''
         ##  sqlmsg("Found exiting err tag. Removing {}".format(p_obj.text))
@@ -1328,7 +1379,7 @@ class MergeToolDocX(MergeTool):
             i_s = p_str.lower().find(p_tag_s, p_start)
             i_e = p_str.lower().find(p_tag_e, i_s)
 
-            if i_s >= 0 and p_str[i_s + 1 : i_s + 1 + len(s.TAG_ERR)] == s.TAG_ERR:
+            if i_s >= 0 and p_str[i_s + 1 : i_s + 1 + len(TAG_ERR)] == TAG_ERR:
                 fulltag = p_str[i_s : i_e + len(p_tag_e)]
                 s.add_fault("not found", fulltag)
 
@@ -1366,7 +1417,7 @@ class MergeToolDocX(MergeTool):
                         #
                     #
                     if found:
-                        # p_str = p_str[:i_s+len(p_tag_s)] + s.TAG_ERR + p_str[i_s+len(p_tag_s):]
+                        # p_str = p_str[:i_s+len(p_tag_s)] + TAG_ERR + p_str[i_s+len(p_tag_s):]
                         p_str = p_str  # we are not replacing it anymore. Just add error below.
                         applyError = True
                         # s.add_fault("not found", fulltag)
@@ -1384,9 +1435,7 @@ class MergeToolDocX(MergeTool):
                     )
                 #
                 p_str = (
-                    p_str[: i_s + len(p_tag_s)]
-                    + s.TAG_ERR
-                    + p_str[i_s + len(p_tag_s) :]
+                    p_str[: i_s + len(p_tag_s)] + TAG_ERR + p_str[i_s + len(p_tag_s) :]
                 )
                 p_str = search_str(
                     p_str,
@@ -1401,15 +1450,15 @@ class MergeToolDocX(MergeTool):
 
         ###
 
-        # p_obj.text = search_str(p_obj.text, s.TAG_S, s.TAG_E)
+        # p_obj.text = search_str(p_obj.text, TAG_S, TAG_E)
         # replacing break images and style.
-        search_str(p_obj.text, s.TAG_S, s.TAG_E)
+        search_str(p_obj.text, TAG_S, TAG_E)
 
         if applyError:
             # plpy.notice("Settings color - {}".format(p_objpar.text))
-            if p_objpar.text.find(s.STR_ERR) < 0:
+            if p_objpar.text.find(STR_ERR) < 0:
                 r = p_objpar.add_run()
-                r.text = s.STR_ERR + " " + errorstr + ".  "
+                r.text = STR_ERR + " " + errorstr + ".  "
                 font = r.font
                 font.color.rgb = RGBColor(0xFF, 0x01, 0x01)
             #
@@ -1511,9 +1560,9 @@ class MergeToolDocX(MergeTool):
                     for r in p.runs:
                         if replacekeys is not None:
                             if (
-                                r.text.find(s.TAG_S) >= 0
-                                or r.text.find(s.TAG_S_OLD) >= 0
-                                or r.text.find(s.TAG_S_SP) >= 0
+                                r.text.find(TAG_S) >= 0
+                                or r.text.find(TAG_S_OLD) >= 0
+                                or r.text.find(TAG_S_SP) >= 0
                             ):
                                 r.text = s.replace_str(r.text, replacekeys)
                             #
@@ -1526,9 +1575,9 @@ class MergeToolDocX(MergeTool):
                 else:
                     if replacekeys is not None:
                         if (
-                            p.text.find(s.TAG_S) >= 0
-                            or p.text.find(s.TAG_S_OLD) >= 0
-                            or p.text.find(s.TAG_S_SP) >= 0
+                            p.text.find(TAG_S) >= 0
+                            or p.text.find(TAG_S_OLD) >= 0
+                            or p.text.find(TAG_S_SP) >= 0
                         ):
                             p.text = s.replace_str(p.text, replacekeys)
                         #
@@ -1547,10 +1596,10 @@ class MergeToolDocX(MergeTool):
                                     if (
                                         replacekeys is not None
                                         and (
-                                            r.text.find(s.TAG_S) >= 0
-                                            or r.text.find(s.TAG_S_OLD) >= 0
+                                            r.text.find(TAG_S) >= 0
+                                            or r.text.find(TAG_S_OLD) >= 0
                                         )
-                                        or r.text.find(s.TAG_S_SP) >= 0
+                                        or r.text.find(TAG_S_SP) >= 0
                                     ):
                                         r.text = s.replace_str(r.text, replacekeys)
                                     #
@@ -1562,10 +1611,10 @@ class MergeToolDocX(MergeTool):
                                 if (
                                     replacekeys is not None
                                     and (
-                                        p.text.find(s.TAG_S) >= 0
-                                        or p.text.find(s.TAG_S_OLD) >= 0
+                                        p.text.find(TAG_S) >= 0
+                                        or p.text.find(TAG_S_OLD) >= 0
                                     )
-                                    or p.text.find(s.TAG_S_SP) >= 0
+                                    or p.text.find(TAG_S_SP) >= 0
                                 ):
                                     p.text = s.replace_str(p.text, replacekeys)
                                 #
@@ -1593,19 +1642,19 @@ class MergeToolDocX(MergeTool):
 
         try:
             s.load_docx()
-            # plpy.notice("Converting Document: {} from tags: {},{} to {},{} and saved to {}".format(s.srcfilename, oldtag_s, oldtag_e,s.TAG_S, s.TAG_E, s.destfilename))
+            # plpy.notice("Converting Document: {} from tags: {},{} to {},{} and saved to {}".format(s.srcfilename, oldtag_s, oldtag_e,TAG_S, TAG_E, s.destfilename))
             for p in s.srcdoc.paragraphs:
                 if len(p.runs) > 0:
                     for r in p.runs:
                         if r.text.find(oldtag_s) >= 0 or r.text.find(oldtag_s) >= 0:
-                            r.text = r.text.replace(oldtag_s, s.TAG_S)
-                            r.text = r.text.replace(oldtag_e, s.TAG_E)
+                            r.text = r.text.replace(oldtag_s, TAG_S)
+                            r.text = r.text.replace(oldtag_e, TAG_E)
                         #
                     #
                 else:
                     if p.text.find(oldtag_s) >= 0 or p.text.find(oldtag_s) >= 0:
-                        p.text = p.text.replace(oldtag_s, s.TAG_S)
-                        p.text = p.text.replace(oldtag_e, s.TAG_E)
+                        p.text = p.text.replace(oldtag_s, TAG_S)
+                        p.text = p.text.replace(oldtag_e, TAG_E)
 
                     #
                 #
@@ -1625,8 +1674,8 @@ class MergeToolDocX(MergeTool):
                                         r.text.find(oldtag_s) >= 0
                                         and r.text.find(oldtag_s) >= 0
                                     ):
-                                        r.text = r.text.replace(oldtag_s, s.TAG_S)
-                                        r.text = r.text.replace(oldtag_e, s.TAG_E)
+                                        r.text = r.text.replace(oldtag_s, TAG_S)
+                                        r.text = r.text.replace(oldtag_e, TAG_E)
                                     #
                                 #
                             else:
@@ -1634,8 +1683,8 @@ class MergeToolDocX(MergeTool):
                                     p.text.find(oldtag_s) >= 0
                                     and p.text.find(oldtag_s) >= 0
                                 ):
-                                    p.text = p.text.replace(oldtag_s, s.TAG_S)
-                                    p.text = p.text.replace(oldtag_e, s.TAG_E)
+                                    p.text = p.text.replace(oldtag_s, TAG_S)
+                                    p.text = p.text.replace(oldtag_e, TAG_E)
                                 #
                             #
                         #
@@ -1662,8 +1711,8 @@ class MergeToolDocX(MergeTool):
     #
 
     def setTableName(s, p_tblparentid, p_str, p_start=0):
-        p_tag_s = s.TAG_S_POSTOP
-        p_tag_e = s.TAG_E_POSTOP
+        p_tag_s = TAG_S_POSTOP
+        p_tag_e = TAG_E_POSTOP
 
         i_s = p_str.find(p_tag_s, p_start)
         i_e = p_str.find(p_tag_e, i_s)
@@ -1752,7 +1801,7 @@ class MergeToolDocX(MergeTool):
                                     )
                                     if opdata is None:
                                         continue
-                                    if rn.text.find(s.STR_TAG_FREETBL) > 0:
+                                    if rn.text.find(STR_TAG_FREETBL) > 0:
                                         s.tbl_mode[str(p_parent)] = "free"
                                     # remove the blank value row again. Note that its not the filter and depends on value of field with this remove tag.
 
@@ -1794,7 +1843,7 @@ class MergeToolDocX(MergeTool):
                                     str(lastid),
                                     colidx,
                                 )
-                                if p.text.find(s.STR_TAG_FREETBL) > 0:
+                                if p.text.find(STR_TAG_FREETBL) > 0:
                                     s.tbl_mode[str(p_parent)] = "free"
 
                                 # remove the blank value row again. Note that its not the filter and depends on value of field with this remove tag.
@@ -1896,7 +1945,7 @@ class MergeToolDocX(MergeTool):
                 colidx = 0
                 rowcnt += 1
                 for cell in row.cells:
-                    if cell.text.find(s.TAG_COND_RTBL) >= 0:
+                    if cell.text.find(TAG_COND_RTBL) >= 0:
                         # plpy.notice("Remove table test: {}, {}".format(lastid,s.tbl_complex_rowdat.get(str(lastid))))
                         if s.tbl_complex_rowdat.get(str(lastid), {}).get("max", 1) <= 0:
                             parent = tbl._tbl.find("..")
@@ -1907,7 +1956,7 @@ class MergeToolDocX(MergeTool):
                         #
                     #
                     # sqlmsg("Cell Text: {} , {}".format(rowcnt, cell.text))
-                    if cell.text.find(s.TAG_COND_RMR) >= 0:
+                    if cell.text.find(TAG_COND_RMR) >= 0:
                         # plpy.notice("Removing Row: {}".format(rowcnt))
                         # sqlmsg("Removing Row: {} , {}".format(rowcnt, cell.text))
                         rmRowIndicator["{}".format(rowcnt)] = True
@@ -1920,11 +1969,11 @@ class MergeToolDocX(MergeTool):
                             continue
                         #
                     #
-                    if cell.text.find(s.TAG_COND_CLR) >= 0:
+                    if cell.text.find(TAG_COND_CLR) >= 0:
                         cell.text = ""
                         continue
                     #
-                    if cell.text.find(s.TAG_COND_RMC) >= 0:
+                    if cell.text.find(TAG_COND_RMC) >= 0:
                         # plpy.notice("Remove Col {}".format(colidx))
                         for c2 in tbl.columns[colidx].cells:
                             # plpy.notice("Remove Cell: {}".format(c2.text))
@@ -1976,27 +2025,27 @@ class MergeToolDocX(MergeTool):
                                 tagname = ""
                                 tagdat = ""
                                 tagop = ""
-                                ichr = tag.find(s.TAG_SPLT)
+                                ichr = tag.find(TAG_SPLT)
                                 if ichr >= 0:
-                                    tagname = tag[:ichr].replace(s.TAG_S, "")
-                                    tagdat = tag[ichr + 1 :].replace(s.TAG_E, "")
+                                    tagname = tag[:ichr].replace(TAG_S, "")
+                                    tagdat = tag[ichr + 1 :].replace(TAG_E, "")
                                     # sqlmsg("Chk Kickstrip {} tag: {} tagname: {} tagdat: {} tagop:{}".format(rowcnt,tag, tagname,tagdat,tagop))
                                 else:
                                     if tagname == "":
-                                        tagname = tag.replace(s.TAG_S, "").replace(
-                                            s.TAG_E, ""
+                                        tagname = tag.replace(TAG_S, "").replace(
+                                            TAG_E, ""
                                         )
                                     #
                                 #
 
-                                ichr = tag.find(s.TAG_RULESPLT)
+                                ichr = tag.find(TAG_RULESPLT)
                                 if ichr >= 0:
-                                    tagname = tag[:ichr].replace(s.TAG_S, "")
-                                    tagop = tag[ichr + 1 :].replace(s.TAG_E, "")
+                                    tagname = tag[:ichr].replace(TAG_S, "")
+                                    tagop = tag[ichr + 1 :].replace(TAG_E, "")
                                 else:
                                     if tagname == "":
-                                        tagname = tag.replace(s.TAG_S, "").replace(
-                                            s.TAG_E, ""
+                                        tagname = tag.replace(TAG_S, "").replace(
+                                            TAG_E, ""
                                         )
                                     #
                                 #
@@ -2007,7 +2056,7 @@ class MergeToolDocX(MergeTool):
                                 #
                                 # sqlmsg("Chk ss {} tag: {} tagname: {} tagdat: {} tagop:{}".format(rowcnt,tag, tagname,tagdat,tagop))
 
-                                if tagname.find(s.STR_TAG_ESIGN) >= 0:
+                                if tagname.find(STR_TAG_ESIGN) >= 0:
                                     continue
                                 #
 
@@ -2042,7 +2091,7 @@ class MergeToolDocX(MergeTool):
                                 #
 
                                 if (
-                                    tagname in s.OP_TAGS
+                                    tagname in OP_TAGS
                                 ):  ##Handle the ordinal/cardinal values
                                     if s.tbl_ordinaldata.get(tblsource) is None:
                                         s.tbl_ordinaldata[tblsource] = {}
@@ -2172,7 +2221,7 @@ class MergeToolDocX(MergeTool):
                                 else:
                                     if (
                                         s.cleanMissing
-                                        and not tag.lower().find(s.STR_TAG_ESIGN) >= 0
+                                        and not tag.lower().find(STR_TAG_ESIGN) >= 0
                                     ):
                                         r2.text = r2.text.replace(tag, "")
                                         # sqlmsg("Leftover tag empty {} ".format(tag))
@@ -2195,17 +2244,17 @@ class MergeToolDocX(MergeTool):
                             #
                             #
 
-                            if r2.text.find(s.TAG_COND_RMC) >= 0:
-                                r2.text = r2.text.replace(s.TAG_COND_RMC, "")
+                            if r2.text.find(TAG_COND_RMC) >= 0:
+                                r2.text = r2.text.replace(TAG_COND_RMC, "")
                             #
-                            if r2.text.find(s.TAG_COND_RMR) >= 0:
-                                r2.text = r2.text.replace(s.TAG_COND_RMR, "")
+                            if r2.text.find(TAG_COND_RMR) >= 0:
+                                r2.text = r2.text.replace(TAG_COND_RMR, "")
                             #
-                            if r2.text.find(s.TAG_COND_RTBL) >= 0:
-                                r2.text = r2.text.replace(s.TAG_COND_RTBL, "")
+                            if r2.text.find(TAG_COND_RTBL) >= 0:
+                                r2.text = r2.text.replace(TAG_COND_RTBL, "")
                             #
-                            if r2.text.find(s.TAG_COND_RMP) >= 0:
-                                r2.text = r2.text.replace(s.TAG_COND_RMP, "")
+                            if r2.text.find(TAG_COND_RMP) >= 0:
+                                r2.text = r2.text.replace(TAG_COND_RMP, "")
                                 par.clear()
                             #
                             s.tag_picture_add(r2)
@@ -2285,8 +2334,8 @@ class MergeToolDocX(MergeTool):
     #
 
     def col_operation_search_str(s, p_str, p_start=0):
-        p_tag_s = s.TAG_S_POSTOP
-        p_tag_e = s.TAG_E_POSTOP
+        p_tag_s = TAG_S_POSTOP
+        p_tag_e = TAG_E_POSTOP
         tags = []
 
         i_s = p_str.find(p_tag_s, p_start)
@@ -2298,7 +2347,7 @@ class MergeToolDocX(MergeTool):
                 cellindex = None
 
                 type = ""
-                if keyparts[0] in s.CELL_OP_TAGS:
+                if keyparts[0] in CELL_OP_TAGS:
                     type = "cell"
                     if len(keyparts) > 1:
                         cellindex = tryInt(keyparts[1])
@@ -2434,7 +2483,7 @@ class MergeToolDocX(MergeTool):
                         opdata["values"].append(numval)
                     elif (
                         str(p_obj.text).strip() != ""
-                        and p_obj.text.find(s.TAG_S_POSTOP) < 0
+                        and p_obj.text.find(TAG_S_POSTOP) < 0
                     ):
                         opdata["values"].append(p_obj.text)
                         opdata["mixedtypes"] = True
@@ -2560,7 +2609,7 @@ class MergeToolDocX(MergeTool):
             cellindex = 0
             skip = False
             for cell in row.cells:
-                if cell.text.find("#rmr") >= 0 or cell.text.find(s.TAG_COND_RMR) >= 0:
+                if cell.text.find("#rmr") >= 0 or cell.text.find(TAG_COND_RMR) >= 0:
                     skip = True
                     break
                 #
@@ -2610,7 +2659,7 @@ class MergeToolDocX(MergeTool):
                         break
                     #
                     # handle blank row
-                    elif bodytext.find(s.TAG_S + "blnkrow" + s.TAG_E) >= 0:
+                    elif bodytext.find(TAG_S + "blnkrow" + TAG_E) >= 0:
                         templaterows[rownr] = {
                             "row": row,
                             "rowtrcopy": copy.deepcopy(row._tr),
@@ -2759,13 +2808,13 @@ class MergeToolDocX(MergeTool):
                     colidx = 0
                     rmcol = False
                     # txt = cell.text
-                    # skiptag = txt.find("{}{}:".format(s.TAG_S, s.TAG_ROW_LIMIT))
+                    # skiptag = txt.find("{}{}:".format(TAG_S, TAG_ROW_LIMIT))
                     # if skiptag >= 0:
                     #   sqlmsg("Found limit {}".format(txt))
-                    #   skiptagend = txt.find("{}".format(s.TAG_E), skiptag)
-                    #   if skiptagend +len(s.TAG_S) > skiptag:
-                    #     parts = txt[skiptag+len(s.TAG_S):skiptagend].split(":")
-                    #     if parts[0] == s.TAG_ROW_LIMIT and parts[1] != "":
+                    #   skiptagend = txt.find("{}".format(TAG_E), skiptag)
+                    #   if skiptagend +len(TAG_S) > skiptag:
+                    #     parts = txt[skiptag+len(TAG_S):skiptagend].split(":")
+                    #     if parts[0] == TAG_ROW_LIMIT and parts[1] != "":
                     #       lastrowlimit = int(parts[1])
                     #     #
                     #   #
@@ -2793,7 +2842,7 @@ class MergeToolDocX(MergeTool):
                         #
                     #
                     ############ Distinct Rows ##############
-                    idxStart = cell.text.find(s.TAG_COND_TBL_DISTINCT)
+                    idxStart = cell.text.find(TAG_COND_TBL_DISTINCT)
                     if idxStart >= 0:
                         rowremcnt = 0
                         splitindex = cell.text.find(":", idxStart)
@@ -2929,7 +2978,7 @@ class MergeToolDocX(MergeTool):
     #
 
     def globalTagsReplace(s, pRun):
-        tag = s.TAG_S + "wordarticle" + s.TAG_E
+        tag = TAG_S + "wordarticle" + TAG_E
         tagstart = pRun.text.find(tag)
         if tagstart >= 0:
             line = pRun.text[tagstart:]
@@ -2986,7 +3035,7 @@ class MergeToolDocX(MergeTool):
         basicvalues = {}
 
         try:
-            if len(s.inputdata) <= 0:
+            if s.inputdata is None or len(s.inputdata) <= 0:
                 raise MergeToolWarning("No tag data given.")
             #
 
@@ -3030,9 +3079,9 @@ class MergeToolDocX(MergeTool):
                                 s.tag_picture_add(r)
                                 s.peek_alias_str(r.text, None, "peekdeclare", r, None)
                             #
-                            s.tagErr(r, s.TAG_S, s.TAG_E)
-                            s.tagErr(r, s.TAG_S_EVAL, s.TAG_E_EVAL)
-                            s.tagErr(r, s.TAG_S_POSTOP, s.TAG_E_POSTOP)
+                            s.tagErr(r, TAG_S, TAG_E)
+                            s.tagErr(r, TAG_S_EVAL, TAG_E_EVAL)
+                            s.tagErr(r, TAG_S_POSTOP, TAG_E_POSTOP)
                         #
 
                     else:
@@ -3068,8 +3117,8 @@ class MergeToolDocX(MergeTool):
                     for r in p.runs:
                         newstr = r.text
                         if (
-                            newstr.find(s.TAG_S_ALIASDECL) >= 0
-                            or newstr.find(s.TAG_S_ALIASUSE) >= 0
+                            newstr.find(TAG_S_ALIASDECL) >= 0
+                            or newstr.find(TAG_S_ALIASUSE) >= 0
                         ):
                             newstr = s.alias_replace(newstr)
                             r.text = newstr
@@ -3077,8 +3126,8 @@ class MergeToolDocX(MergeTool):
                         s.basic_operation_compute(r)
                     #
                 #
-                if p.text.find(s.TAG_COND_RMP) >= 0:
-                    r2.text = r2.text.replace(s.TAG_COND_RMP, "")
+                if p.text.find(TAG_COND_RMP) >= 0:
+                    r2.text = r2.text.replace(TAG_COND_RMP, "")
                     par.clear()
                 #
             #
@@ -3099,9 +3148,9 @@ class MergeToolDocX(MergeTool):
                     #
 
                     s.basic_operation_compute(pItem, pTableID)
-                    s.tagErr(pItem, s.TAG_S, s.TAG_E)
-                    s.tagErr(pItem, s.TAG_S_EVAL, s.TAG_E_EVAL)
-                    s.tagErr(pItem, s.TAG_S_POSTOP, s.TAG_E_POSTOP)
+                    s.tagErr(pItem, TAG_S, TAG_E)
+                    s.tagErr(pItem, TAG_S_EVAL, TAG_E_EVAL)
+                    s.tagErr(pItem, TAG_S_POSTOP, TAG_E_POSTOP)
                 #
 
             #
@@ -3151,10 +3200,7 @@ class MergeToolDocX(MergeTool):
 
                 if isinstance(obj, docx.text.run.Run):
                     if obj.text is not None and obj.text.find(tag) >= 0:
-                        if (
-                            s.cleanMissing
-                            and not tag.lower().find(s.STR_TAG_ESIGN) >= 0
-                        ):
+                        if s.cleanMissing and not tag.lower().find(STR_TAG_ESIGN) >= 0:
                             obj.text = obj.text.replace(tag, "")
                             plpy.notice("Orphan tag to be removed, {}".format(objlist))
                         #
@@ -3320,7 +3366,7 @@ class MergeToolDocX(MergeTool):
                 p = s.srcdoc.add_paragraph("")
                 r = p.add_run(
                     "{}:\r\nTag:{}\r\n".format(
-                        display_name, tag.strip(s.TAG_S).strip(s.TAG_E)
+                        display_name, tag.strip(TAG_S).strip(TAG_E)
                     )
                 )
                 r.bold = True
@@ -3410,6 +3456,453 @@ class MergeToolDocX(MergeTool):
                 placeTable(tbl, par)
             #
         #
+
+    #
+
+    def eval_replace(s, p_obj, p_type="", p_tableid=""):
+        eval_tag_start = 0
+        eval_tag_end = 0
+        found = False
+        canBlank = True
+        err = False
+        if isinstance(p_obj, docx.text.run.Run):
+            m_str = p_obj.text
+            p_type = "docx"
+        elif hasattr(p_obj, "text"):
+            m_str = p_obj.text
+            p_type = "docx"
+        else:
+            m_str = p_obj
+        #
+        # if m_str.find(TAG_S_EVAL) >= 0:
+        #  sqlmsg("Eval[tag] tag:{}".format(m_str))
+        #
+        if p_type in ("html", "txt"):
+            m_str = html_replace(m_str)
+        #
+
+        evalAliasBegin = m_str.find(TAG_S_ALIASDECL)
+        if m_str.find(TAG_S_ALIASUSE) >= 0:
+            bk = m_str
+            m_str = s.alias_replace(m_str)
+            # sqlmsg("Eval alias - pre:{} post:{}".format(bk,m_str))
+        #
+
+        for i in range(50):
+            eval_tag_start = m_str.find(TAG_S_EVAL, 0)
+            eval_tag_end = m_str.find(TAG_E_EVAL, eval_tag_start)
+
+            inAlias = evalAliasBegin >= 0 and eval_tag_start >= 0
+            cleanresult = False
+            exitloop = 0
+            noFormat = inAlias
+            try:
+                # sqlmsg("Eval[post] S:{} E:{} Str:{}".format(eval_tag_start, eval_tag_end, m_str[eval_tag_start+len(TAG_S_EVAL):eval_tag_end]))
+                if eval_tag_start >= 0 and eval_tag_end >= eval_tag_start:
+                    exprstr = m_str[eval_tag_start + len(TAG_S_EVAL) : eval_tag_end]
+                    posttag_end = exprstr.find(TAG_S_POSTOP)
+                    if exprstr.find(TAG_E_POSTOP) > posttag_end and posttag_end > 0:
+                        continue
+                    #
+
+                    opstrings = []
+                    i_op_start = m_str.find("#", eval_tag_start, eval_tag_end)
+                    if i_op_start > 0:
+                        opend = m_str.find("#", i_op_start + 1)
+                        # opstr = m_str[i_op_start+1:opend]
+                        opstrings = m_str[i_op_start + 1 : eval_tag_end].split("#")
+                        exprstr = m_str[eval_tag_start + len(TAG_S_EVAL) : i_op_start]
+                        for t in opstrings:
+                            if t.find("fmt") >= 0:
+                                noFormat = True
+                            #
+                        #
+                        # sqlmsg("Eval[Operator] exprstr:[{}] opstr:{} [{}] Str:[{}]".format(exprstr, i_op_start, opstr, m_str[eval_tag_start+len(TAG_S_EVAL):eval_tag_end] ))
+                    #
+                    # sqlmsg("Eval[str] opstrings={} exprstr={}".format(opstrings, exprstr))
+                    newstr = s.evalstr(exprstr, "", p_obj, {"noformat": noFormat})
+                    exprtrue = newstr.strip(" ").lower() in ("1", "true")
+                    exprfalse = not exprtrue
+
+                    # sqlmsg("Eval[str] opstrings:[{}] exprtrue:{} exprstr:[{}]".format(opstrings,exprtrue, exprstr ))
+                    def getOpStr(pKey):
+                        for opstr in opstrings:
+                            strstartpos = opstr.lower().find(pKey)
+                            if strstartpos >= 0:
+                                istart = strstartpos + len(pKey)
+                                newstr = opstr[istart:]
+                                return newstr
+                            #
+                        #
+                        return ""
+
+                    #
+
+                    for opstr in opstrings:
+                        strstartpos = opstr.lower().find("str:")
+
+                        if strstartpos >= 0:
+                            if exprtrue:
+                                istart = strstartpos + len("str:")
+                                newstr = opstr[istart:]
+
+                                m_str = (
+                                    m_str[:eval_tag_start]
+                                    + newstr
+                                    + m_str[eval_tag_end + len(TAG_E_EVAL) :]
+                                )
+                                found = True
+                            else:
+                                newstr = ""
+                                if exprfalse:
+                                    newstr = getOpStr("str!:")
+                                #
+                                m_str = (
+                                    m_str[:eval_tag_start]
+                                    + newstr
+                                    + m_str[eval_tag_end + len(TAG_E_EVAL) :]
+                                )
+                                found = True
+                            #
+
+                            # sqlmsg("Eval[str2] newstr:[{}] exprtrue:{} exprstr:[{}] m_str:[{}]".format(newstr,exprtrue, exprstr,m_str ))
+
+                            exitloop = 1
+
+                        elif opstr.find("rmp") >= 0:
+                            canBlank = False
+                            cleanresult = True
+
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or exprfalse and opstr.find("rmp!")
+                            ):
+                                par = p_obj._parent
+                                gran = par._parent
+                                par.text = ""
+                                par.clear()
+                            #
+                        elif (
+                            opstr.find("rmt") >= 0
+                            or opstr.find("rmc") >= 0
+                            or opstr.find("rmr") >= 0
+                            or opstr.find("rmo") >= 0
+                        ):
+                            inverted = (
+                                opstr.find("rmt!") >= 0
+                                or opstr.find("rmc!") >= 0
+                                or opstr.find("rmr!") >= 0
+                                or opstr.find("rmo!") >= 0
+                            )
+                            cleanresult = True
+                            canBlank = False
+                            tbl = None
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or inverted and exprfalse
+                            ):
+                                par = p_obj._parent
+                                gran = par._parent
+                                if isinstance(par, docx.table._Cell):
+                                    tbl = par._parent
+                                elif isinstance(gran, docx.table._Cell):
+                                    tbl = gran._parent
+                                #
+                                if tbl is not None:
+                                    if opstr.find("rmc") >= 0:
+                                        gran.text = ""
+                                    #
+                                    if opstr.find("rmr") >= 0:
+                                        rowcnt = 0
+                                        totalrows = len(tbl.rows)
+                                        for r in tbl.rows:
+                                            rowcnt += 1
+                                            for c in r.cells:
+                                                if id(c._element) == id(gran._element):
+                                                    parent = r._tr.find("..")
+                                                    s.table_removerow_list.append(
+                                                        {
+                                                            "xmlptr": tbl,
+                                                            "rowptr": r,
+                                                            "row": rowcnt,
+                                                            "total": totalrows,
+                                                            "tableid": p_tableid,
+                                                        }
+                                                    )
+
+                                                    if parent is not None:
+                                                        parent.remove(r._tr)
+                                                        break
+                                                    #
+                                                #
+                                            #
+                                        #
+                                    #
+                                    if opstr.find("rmo") >= 0:
+                                        canBlank = False
+                                        for col in tbl.columns:
+                                            found = False
+                                            for c in col.cells:
+                                                if id(c._element) == id(gran._element):
+                                                    found = True
+                                                    break
+                                                #
+                                            #
+                                            if found:
+                                                for c in col.cells:
+                                                    c.text = ""
+                                                #
+                                            #
+                                        #
+                                    #
+                                    if opstr.find("rmt") >= 0:
+                                        p = tbl._parent
+                                        if p is not None:
+                                            p._element.remove(tbl._element)
+                                        #
+                                    #
+                                #
+                            #
+                        elif opstr.find("border") >= 0:
+                            canBlank = False
+                            inverted = opstr.find("border!") >= 0
+                            borderopts = opstr[len("border") + 1 :]
+                            cleanresult = True
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or inverted and exprfalse
+                            ):
+                                par = p_obj._parent
+                                gran = par._parent
+                                if isinstance(gran, docx.table._Cell):
+                                    bde = ""
+                                    try:
+                                        xcell = gran._element
+
+                                        fmt = """<?xml version="1.0"?>
+                    <w:tcBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+                    """
+
+                                        if borderopts.find("db") >= 0:
+                                            fmt += """<w:bottom w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+                                        elif borderopts.find("b") >= 0:
+                                            fmt += """<w:bottom w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+
+                                        if borderopts.find("dt") >= 0:
+                                            fmt += """<w:top w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+                                        elif borderopts.find("t") >= 0:
+                                            fmt += """<w:top w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+
+                                        if borderopts.find("dl") >= 0:
+                                            fmt += """<w:left w:val="sindoublegle" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+                                        elif borderopts.find("l") >= 0:
+                                            fmt += """<w:left w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+
+                                        if borderopts.find("dr") >= 0:
+                                            fmt += """<w:right w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+                                        elif borderopts.find("r") >= 0:
+                                            fmt += """<w:right w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
+                                        #
+
+                                        fmt += """</w:tcBorders>"""
+                                        bde = LET.fromstring(fmt)
+                                        ptr = xcell.find("tcPr")
+                                        if ptr is None:
+                                            ptr = LET.fromstring(
+                                                """<?xml version="1.0"?>
+                    <w:tcPr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+                    </w:tcPr>
+                    """
+                                            )
+                                            xcell.append(ptr)
+                                        #
+                                        ptr.append(bde)
+                                    except Exception as e:
+                                        raise Exception(
+                                            "Failed to change border settings. {}\r\n{}".format(
+                                                e, bde
+                                            )
+                                        )
+                                    #
+                                #
+                            #
+                        elif opstr.find("addrows") >= 0 and exprtrue:
+                            canBlank = False
+                            borderopts = opstr[len("addrows") + 1 :]
+                            cleanresult = True
+
+                            newrowcnt = int(borderopts.strip(" "))
+                            if isinstance(p_obj, docx.text.run.Run):
+                                par = p_obj._parent
+                                gran = par._parent
+                                if isinstance(gran, docx.table._Cell):
+                                    tbl = gran._parent
+                                    for i in range(newrowcnt):
+                                        tbl.add_row()
+                                    #
+                                #
+                            #
+                        elif opstr.find("bold") >= 0:
+                            canBlank = False
+                            inverted = opstr.find("bold!") >= 0
+                            borderopts = opstr[len("bold") + 1 :]
+                            cleanresult = True
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or inverted and exprfalse
+                            ):
+                                par = p_obj._parent
+                                font = p_obj.font
+                                if font is not None:
+                                    font.bold = True
+                                #
+                            #
+                        elif opstr.find("italic") >= 0:
+                            canBlank = False
+                            inverted = opstr.find("italic!") >= 0
+                            borderopts = opstr[len("italic") + 1 :]
+                            cleanresult = True
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or inverted and exprfalse
+                            ):
+                                par = p_obj._parent
+                                font = p_obj.font
+                                if font is not None:
+                                    font.italic = True
+                                #
+                            #
+                        elif opstr.find("underline") >= 0:
+                            canBlank = False
+                            inverted = opstr.find("underline!") >= 0
+                            borderopts = opstr[len("underline") + 1 :]
+                            cleanresult = True
+                            if isinstance(p_obj, docx.text.run.Run) and (
+                                exprtrue or inverted and exprfalse
+                            ):
+                                par = p_obj._parent
+                                font = p_obj.font
+                                if font is not None:
+                                    font.underline = True
+                                #
+                            #
+                        #
+                        # -----------------------------------------------------------[CHANGE ID: 29879]  25/10/2021 16:03 Begin
+                        elif opstr.find("hide") >= 0:
+                            inverted = opstr.find("hide!") >= 0
+                            opts = opstr[len("hide") + 1 :]
+                            times = tryInt(opts)
+                            cleanresult = True
+                            # sqlmsg("Hide {} for {} op: {}".format(m_str,times, opts ))
+                            if isinstance(p_obj, docx.text.run.Run):
+                                par = p_obj._parent
+                                sib = None
+                                for i in range(times + 1):
+                                    if inverted:
+                                        sib = p_obj._element.getnext()
+                                    else:
+                                        sib = p_obj._element.getprevious()
+                                    #
+                                    if sib is None:
+                                        break
+                                    #
+                                    par.remove(sib)
+                                #
+                                p_obj.text = ""
+                            #
+                        #
+                        # -----------------------------------------------------------[CHANGE ID: 29879]  25/10/2021 16:03 End
+                        elif opstr.find("fmt") >= 0:
+                            borderopts = opstr[len("fmt") + 1 :]
+                            ops = borderopts.split(",")
+                            cleanresult = True
+
+                            if isinstance(p_obj, docx.text.run.Run):
+                                tmpstr = newstr
+                                if len(ops) > 1:
+                                    fmt = "{:" + ops[0] + ",." + ops[1] + "f}"
+                                elif len(ops) == 1:
+                                    fmt = "{:" + ops[0] + ",.2f}"
+                                else:
+                                    fmt = "{:.2f}"
+                                #
+                                try:
+
+                                    floatval = tryFloat(tmpstr, "0")
+                                    if floatval > 0:
+                                        tmpstr = fmt.format(floatval)
+                                        sqlmsg(
+                                            "Eval format floatval:{} opstrings:{} borderopts:{} tmpstr: {}".format(
+                                                floatval, opstrings, borderopts, tmpstr
+                                            ),
+                                            p_type="local notice",
+                                        )
+
+                                        newstr = tmpstr
+                                        m_str = tmpstr
+                                        found = True
+                                        break
+                                    #
+                                except Exception as e:
+                                    raise "Failed to format string to float: {}".format(
+                                        p_obj.text
+                                    )
+                                #
+                            #
+                    # end for ops
+
+                    if exitloop == 1:
+                        continue
+                    if exitloop == 2:
+                        break
+
+                    if cleanresult:
+                        newstr = ""
+                    #
+                    m_str = (
+                        m_str[:eval_tag_start]
+                        + newstr
+                        + m_str[eval_tag_end + len(TAG_E_EVAL) :]
+                    )
+
+                    found = True
+                else:
+                    if eval_tag_start >= 0:
+                        sqlmsg(
+                            "Eval open tag {} found without ending tag in this run->{}".format(
+                                TAG_S_EVAL, m_str
+                            ),
+                            p_type="local notice",
+                        )
+                    #
+                    break
+                #
+            except Exception as e:
+                if s.show_errors:
+                    m_str = '[! Expression Failed: {} in "{}"!]'.format(e, exprstr)
+                else:
+                    m_str = ""
+                #
+                err = True
+            #
+        #
+        if found and isinstance(p_obj, docx.text.run.Run):
+            # sqlmsg("Blank Text: {}".format(m_str ))
+            # if canBlank and len(m_str) < 2:
+            #   m_str = "."
+            #   s.post_format.append({"tag": 'eval', "obj": p_obj, "type": 'default'})
+            # #
+            if len(m_str) < 2:
+                m_str = ""
+            #
+            p_obj.text = m_str
+        elif err and isinstance(p_obj, docx.text.run.Run):
+            p_obj.text = m_str
+        #
+        # sqlmsg("Eval[Return] m_str:[{}]".format(m_str ))
+        return m_str
 
     #
 

@@ -58,6 +58,36 @@ class TestMergeOperations(unittest.TestCase):
             #
         #
 
+    def test_proc_call_merge_file(self):
+        outfilename = os.path.join(
+            os.path.dirname(__file__), "data/Mail_Merge_Test_Merged.docx"
+        )
+        filename = os.path.join(
+            os.path.dirname(__file__), "data/Mail_Merge_Test_Template.docx"
+        )
+        resultfile = os.path.join(
+            os.path.dirname(__file__), "data/Mail_Merge_Test_Template_peek_result.json"
+        )
+        jsonfile = os.path.join(
+            os.path.dirname(__file__), "data/Mail_Merge_Test_Template_inputdata.json"
+        )
+        print("Testing File: ", filename)
+        jsondata = None
+        with open(jsonfile, "rb") as blobfile:
+            blobdata = blobfile.read()
+            jsondata = blobdata.decode("utf-8")
+        #
+
+        [p_retval, p_errmsg, p_result, p_file] = execute_merge_sql(
+            "merge_docx", filename, outfilename, jsondata, None
+        )
+        print("Results", p_retval, p_errmsg)
+
+        if p_errmsg is not None:
+            self.assertEqual(len(p_errmsg), 0, p_errmsg)
+
+        self.assertEqual(p_retval, 0, p_errmsg)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

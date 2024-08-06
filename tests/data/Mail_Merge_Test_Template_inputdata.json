@@ -1,0 +1,93 @@
+{
+    "fields": {
+        "[*cli_id*]": {
+            "type": "1",
+            "value": "9606206182086"
+        },
+        "[*cli_cell*]": {
+            "type": "1",
+            "value": "0671469519"
+        },
+        "[*cli_email*]": {
+            "type": "1",
+            "value": "algebratshepo@gmail.com"
+        },
+        "[*spouse_id*]": {
+            "type": "1",
+            "value": null
+        },
+        "[*cli_!esign*]": {
+            "type": "1",
+            "value": "!skip"
+        },
+        "[*cli_joined*]": {
+            "type": "1",
+            "value": "Single"
+        },
+        "[*cli_pfx_p1*]": {
+            "type": "1",
+            "value": "I"
+        },
+        "[*cli_pfx_p3*]": {
+            "type": "1",
+            "value": "My"
+        },
+        "[*cli_str_add*]": {
+            "type": "1",
+            "value": "3265 NGUBENI STREET, BOHLOKONG, BETHLEHEM, 9702"
+        },
+        "[*cli_surname*]": {
+            "type": "1",
+            "value": "RADEBE"
+        },
+        "[*clis_!esign*]": {
+            "type": "1",
+            "value": "!skip"
+        },
+        "[*spouse_cell*]": {
+            "type": "1",
+            "value": null
+        },
+        "[*spouse_name*]": {
+            "type": "1",
+            "value": null
+        },
+        "[*spouse_email*]": {
+            "type": "1",
+            "value": null
+        },
+        "[*cli_town!esign*]": {
+            "type": "1",
+            "value": "!skip"
+        },
+        "[*cli_year!esign*]": {
+            "type": "1",
+            "value": "!skip"
+        },
+        "[*spouse_surname*]": {
+            "type": "1",
+            "value": null
+        },
+        "[*cli_first_names*]": {
+            "type": "1",
+            "value": "TSHEPO"
+        },
+        "[*cli_month!esign*]": {
+            "type": "1",
+            "value": "!skip"
+        },
+        "[*cli_pfx_p3:lower*]": {
+            "type": "1",
+            "value": "my"
+        },
+        "[*cli_pfx_p1:initcap*]": {
+            "type": "1",
+            "value": "I"
+        },
+        "[*cli_date!esign:dfmt=DD*]": {
+            "type": "1",
+            "value": "!skip"
+        }
+    },
+    "complexfields": {}
+}

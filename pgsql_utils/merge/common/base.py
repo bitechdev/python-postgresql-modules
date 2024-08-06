@@ -12,82 +12,67 @@ from ...util.string import (
 from ...util.number import ndec, nint, isFloat, tryInt, tryFloat, getNumber
 from ...util.array import avg_any, max_any, min_any, sum_any
 from ...pgproc.debug import sqlmsg, get_err_msg
+from ..tags import (
+    TAG_S_SP,
+    TAG_E_SP,
+    TAG_S,
+    TAG_E,
+    TAG_S_OLD,
+    TAG_E_OLD,
+    TAG_S_EVAL,
+    TAG_E_EVAL,
+    TAG_S_INPLACE,
+    TAG_E_INPLACE,
+    TAG_S_ALIASDECL,
+    TAG_E_ALIASDECL,
+    TAG_D_ALIASDECL,
+    TAG_S_ALIASUSE,
+    TAG_E_ALIASUSE,
+    TAG_S_POSTOP,
+    TAG_E_POSTOP,
+    TAG_S_TBLM,
+    TAG_E_TBLM,
+    TAG_ERR,
+    STR_ERR,
+    TAG_SPLT,
+    TAG_RULESPLT,
+    STR_TAG_RMBD,
+    STR_TAG_RMBC,
+    STR_TAG_RMDR,
+    STR_TAG_FREETBL,
+    STR_TAG_ESIGN,
+    STR_TAG_LIMITROW,
+    STR_TAG_TBLSEARCH_RM,
+    TTYP_ROOT,
+    TTYP_FIELD,
+    TTYP_TBLFIELD,
+    TTYP_TBLROOT,
+    TTYP_AGGFIELD,
+    TTYP_PIC,
+    TTYP_SPECIAL,
+    TTYP_FILTER,
+    TTYP_CONDITIONAL,
+    TTYP_DOCREPLACE,
+    TTYP_EMBEDHTML,
+    OP_TAGS,
+    CELL_OP_TAGS,
+    TAG_COND_RMR,
+    TAG_COND_RMC,
+    TAG_COND_CLR,
+    TAG_COND_RTBL,
+    TAG_COND_TBL_DISTINCT,
+    TAG_COND_RMP,
+)
+import ast
 
+if "plpy" not in globals():
+    import pgsql_utils.pgproc.wrap_plpy as plpy
+#
 
 class MergeTool(object):
     """Bitech Merge Tool"""
 
     DEBUG = False
-    TAG_S_SP = chr(171)
-    TAG_E_SP = chr(187)
-    TAG_S = "[*"
-    TAG_E = "*]"
-
-    TAG_S_OLD = "[~"
-    TAG_E_OLD = "~]"
-
-    TAG_S_EVAL = "[="
-    TAG_E_EVAL = "=]"
-
-    TAG_S_INPLACE = "[I="
-    TAG_E_INPLACE = "=I]"
-
-    TAG_S_ALIASDECL = "[A="
-    TAG_E_ALIASDECL = "=A]"
-    TAG_D_ALIASDECL = "="
-
-    TAG_S_ALIASUSE = "[A_"
-    TAG_E_ALIASUSE = "_A]"
-
-    TAG_S_POSTOP = "[+"
-    TAG_E_POSTOP = "+]"
-
-    TAG_S_TBLM = "[T_"
-    TAG_E_TBLM = "_T]"
-
-    TAG_ERR = "!ERROR!"
-    STR_ERR = "!Fix tag!"
-    TAG_SPLT = "|"
-    TAG_RULESPLT = ":"
-    STR_TAG_RMBD = "rmbd!row"
-    STR_TAG_RMBC = "rmbd!col"
-    STR_TAG_RMDR = "rmdr!tbl"
-
-    STR_TAG_FREETBL = "free!tbl"
-    STR_TAG_ESIGN = "!esign"
-    STR_TAG_LIMITROW = "limitrow"
-    STR_TAG_TBLSEARCH_RM = "tbl!rm!search"
-
-    TTYP_ROOT = 0
-    TTYP_FIELD = 1
-    TTYP_TBLFIELD = 2
-    TTYP_TBLROOT = 3
-    TTYP_AGGFIELD = 4
-    TTYP_PIC = 5
-    TTYP_SPECIAL = 6
-    TTYP_FILTER = 7
-    TTYP_CONDITIONAL = 8
-    TTYP_DOCREPLACE = 9
-    TTYP_EMBEDHTML = 10
-
-    OP_TAGS = [
-        "ordinal",
-        "cardinal",
-        "ordinalw",
-        "cardinalw",
-        "minvalue",
-        "maxvalue",
-        "minvaluew",
-        "maxvaluew",
-    ]
-    CELL_OP_TAGS = ["col.min", "col.max", "col.avg", "col.sum", "col.count"]
-
-    TAG_COND_RMR = "!!!rmr!!!"
-    TAG_COND_RMC = "!!!rmc!!!"
-    TAG_COND_CLR = "!!<clr>!!"
-    TAG_COND_RTBL = "rm!tbl"
-    TAG_COND_TBL_DISTINCT = "dtc!tbl"
-    TAG_COND_RMP = "!!!rmp!!!"
 
     def __init__(s):
         s.mode = ""
@@ -106,6 +91,7 @@ class MergeTool(object):
         s.tbl_col_operation = {}
         s.tagdebug = s.DEBUG
         s.visit_tables_uniq = []
+        s.show_errors = True
 
     #
 
@@ -179,10 +165,10 @@ class MergeTool(object):
 
         #
 
-        search_str(p_str, s.TAG_S, s.TAG_E)
+        search_str(p_str, TAG_S, TAG_E)
         if p_inc_old:
-            search_str(p_str, s.TAG_S_OLD, s.TAG_E_OLD)
-            search_str(p_str, s.TAG_S_SP, s.TAG_E_SP)
+            search_str(p_str, TAG_S_OLD, TAG_E_OLD)
+            search_str(p_str, TAG_S_SP, TAG_E_SP)
         #
 
         return tags
@@ -300,17 +286,17 @@ class MergeTool(object):
                     decltag = s.aliasList[alias["declid"]]
 
                     tagstr = decltag["obj"].text
-                    e_s = tagstr.find(s.TAG_S_EVAL)
+                    e_s = tagstr.find(TAG_S_EVAL)
                     if e_s >= 0:
                         s.eval_replace(decltag["obj"], decltag["objtype"])
                         tagstr = decltag["obj"].text
                     #
-                    i_s = tagstr.find(s.TAG_S_ALIASDECL, 0)
-                    i_e = tagstr.find(s.TAG_E_ALIASDECL, i_s)
+                    i_s = tagstr.find(TAG_S_ALIASDECL, 0)
+                    i_e = tagstr.find(TAG_E_ALIASDECL, i_s)
                     # sqlmsg("alias_replace-ss i_s: {} , tagstr:{} declid:{}".format(i_s, tagstr, alias["declid"]), "alias_replacess")
                     if i_s >= 0:
-                        tagbody = tagstr[i_s + len(s.TAG_S_ALIASDECL) : i_e]
-                        parts = tagbody.split(s.TAG_D_ALIASDECL, 1)
+                        tagbody = tagstr[i_s + len(TAG_S_ALIASDECL) : i_e]
+                        parts = tagbody.split(TAG_D_ALIASDECL, 1)
                         ### These are replacement operators
                         for op in alias["ops"]:
                             if op == "lower":
@@ -345,16 +331,16 @@ class MergeTool(object):
                 a["obj"] = None
                 debug.append(a)
 
-                i_s = tagstr.find(s.TAG_S_ALIASDECL, 0)
-                i_e = tagstr.find(s.TAG_D_ALIASDECL, i_s + len(s.TAG_S_ALIASDECL))
-                i_f = tagstr.find(s.TAG_E_ALIASDECL, i_s)
+                i_s = tagstr.find(TAG_S_ALIASDECL, 0)
+                i_e = tagstr.find(TAG_D_ALIASDECL, i_s + len(TAG_S_ALIASDECL))
+                i_f = tagstr.find(TAG_E_ALIASDECL, i_s)
                 # sqlmsg("alias_replace- tagstr:{} i_s:{} i_e:{}".format(tagstr, i_s, i_e), "alias_replace2")
                 if i_s >= 0 and i_e > i_s and i_e <= i_f:
-                    tagstr = tagstr[i_e + len(s.TAG_D_ALIASDECL) :]
+                    tagstr = tagstr[i_e + len(TAG_D_ALIASDECL) :]
                 #
 
                 # tagstr = tagstr.replace(s.TAG_S_ALIASDECL,"")
-                tagstr = tagstr.replace(s.TAG_E_ALIASDECL, "")
+                tagstr = tagstr.replace(TAG_E_ALIASDECL, "")
                 if alias["type"] == "use":
                     tagstr = tagstr.replace(alias["tag"], "")
                 #
@@ -392,7 +378,7 @@ class MergeTool(object):
             return opdata
         #
 
-        if not p_str.find(s.TAG_S) >= 0:  # abort this line/object, we have not tags.
+        if not p_str.find(TAG_S) >= 0:  # abort this line/object, we have not tags.
             opdata["error"] = "No tags found."
             return opdata
         #
@@ -442,7 +428,7 @@ class MergeTool(object):
                     found = True
                 #
             #
-            if tagtype == s.TTYP_PIC:
+            if tagtype == TTYP_PIC:
                 if s.HTML:
 
                     def findtagdetails(p_wtype):
@@ -516,26 +502,26 @@ class MergeTool(object):
             #
 
             ### E-Sign tags
-            if tag.lower().find(s.STR_TAG_ESIGN) > -1:
+            if tag.lower().find(STR_TAG_ESIGN) > -1:
                 if s.HTML and tag.find("esign_url") >= 0:
                     val = '<a href="{0}">{0}</a>'.format(val)
                 #
             #
 
-            if tagtype == s.TTYP_TBLROOT:
+            if tagtype == TTYP_TBLROOT:
                 continue  # we do not handle inner values here.
-            if tagtype == s.TTYP_CONDITIONAL:
+            if tagtype == TTYP_CONDITIONAL:
                 if p_str.find(tag) >= 0:
                     if tryInt(tagvalue) > 0:
                         if tag.find("rmr!") >= 0:
-                            val = s.TAG_COND_RMR
+                            val = TAG_COND_RMR
                             # sqlmsg("Will Remove Row: {} , {}, p_str={}".format(tag, tagvalue, p_str))
                         elif tag.find("rmc!") >= 0:
-                            val = s.TAG_COND_RMC
+                            val = TAG_COND_RMC
                         elif tag.find("cc!") >= 0:
-                            val = s.TAG_COND_CLR
+                            val = TAG_COND_CLR
                         elif tag.find("!rmp!") >= 0:
-                            val = s.TAG_COND_RMP
+                            val = TAG_COND_RMP
                         else:
                             continue
                         #
@@ -856,453 +842,6 @@ class MergeTool(object):
             )
         #
         return str(result)
-
-    #
-
-    def eval_replace(s, p_obj, p_type="", p_tableid=""):
-        eval_tag_start = 0
-        eval_tag_end = 0
-        found = False
-        canBlank = True
-        err = False
-        if isinstance(p_obj, docx.text.run.Run):
-            m_str = p_obj.text
-            p_type = "docx"
-        elif hasattr(p_obj, "text"):
-            m_str = p_obj.text
-            p_type = "docx"
-        else:
-            m_str = p_obj
-        #
-        # if m_str.find(s.TAG_S_EVAL) >= 0:
-        #  sqlmsg("Eval[tag] tag:{}".format(m_str))
-        #
-        if p_type in ("html", "txt"):
-            m_str = html_replace(m_str)
-        #
-
-        evalAliasBegin = m_str.find(s.TAG_S_ALIASDECL)
-        if m_str.find(s.TAG_S_ALIASUSE) >= 0:
-            bk = m_str
-            m_str = s.alias_replace(m_str)
-            # sqlmsg("Eval alias - pre:{} post:{}".format(bk,m_str))
-        #
-
-        for i in range(50):
-            eval_tag_start = m_str.find(s.TAG_S_EVAL, 0)
-            eval_tag_end = m_str.find(s.TAG_E_EVAL, eval_tag_start)
-
-            inAlias = evalAliasBegin >= 0 and eval_tag_start >= 0
-            cleanresult = False
-            exitloop = 0
-            noFormat = inAlias
-            try:
-                # sqlmsg("Eval[post] S:{} E:{} Str:{}".format(eval_tag_start, eval_tag_end, m_str[eval_tag_start+len(s.TAG_S_EVAL):eval_tag_end]))
-                if eval_tag_start >= 0 and eval_tag_end >= eval_tag_start:
-                    exprstr = m_str[eval_tag_start + len(s.TAG_S_EVAL) : eval_tag_end]
-                    posttag_end = exprstr.find(s.TAG_S_POSTOP)
-                    if exprstr.find(s.TAG_E_POSTOP) > posttag_end and posttag_end > 0:
-                        continue
-                    #
-
-                    opstrings = []
-                    i_op_start = m_str.find("#", eval_tag_start, eval_tag_end)
-                    if i_op_start > 0:
-                        opend = m_str.find("#", i_op_start + 1)
-                        # opstr = m_str[i_op_start+1:opend]
-                        opstrings = m_str[i_op_start + 1 : eval_tag_end].split("#")
-                        exprstr = m_str[eval_tag_start + len(s.TAG_S_EVAL) : i_op_start]
-                        for t in opstrings:
-                            if t.find("fmt") >= 0:
-                                noFormat = True
-                            #
-                        #
-                        # sqlmsg("Eval[Operator] exprstr:[{}] opstr:{} [{}] Str:[{}]".format(exprstr, i_op_start, opstr, m_str[eval_tag_start+len(s.TAG_S_EVAL):eval_tag_end] ))
-                    #
-                    # sqlmsg("Eval[str] opstrings={} exprstr={}".format(opstrings, exprstr))
-                    newstr = s.evalstr(exprstr, "", p_obj, {"noformat": noFormat})
-                    exprtrue = newstr.strip(" ").lower() in ("1", "true")
-                    exprfalse = not exprtrue
-
-                    # sqlmsg("Eval[str] opstrings:[{}] exprtrue:{} exprstr:[{}]".format(opstrings,exprtrue, exprstr ))
-                    def getOpStr(pKey):
-                        for opstr in opstrings:
-                            strstartpos = opstr.lower().find(pKey)
-                            if strstartpos >= 0:
-                                istart = strstartpos + len(pKey)
-                                newstr = opstr[istart:]
-                                return newstr
-                            #
-                        #
-                        return ""
-
-                    #
-
-                    for opstr in opstrings:
-                        strstartpos = opstr.lower().find("str:")
-
-                        if strstartpos >= 0:
-                            if exprtrue:
-                                istart = strstartpos + len("str:")
-                                newstr = opstr[istart:]
-
-                                m_str = (
-                                    m_str[:eval_tag_start]
-                                    + newstr
-                                    + m_str[eval_tag_end + len(s.TAG_E_EVAL) :]
-                                )
-                                found = True
-                            else:
-                                newstr = ""
-                                if exprfalse:
-                                    newstr = getOpStr("str!:")
-                                #
-                                m_str = (
-                                    m_str[:eval_tag_start]
-                                    + newstr
-                                    + m_str[eval_tag_end + len(s.TAG_E_EVAL) :]
-                                )
-                                found = True
-                            #
-
-                            # sqlmsg("Eval[str2] newstr:[{}] exprtrue:{} exprstr:[{}] m_str:[{}]".format(newstr,exprtrue, exprstr,m_str ))
-
-                            exitloop = 1
-
-                        elif opstr.find("rmp") >= 0:
-                            canBlank = False
-                            cleanresult = True
-
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or exprfalse and opstr.find("rmp!")
-                            ):
-                                par = p_obj._parent
-                                gran = par._parent
-                                par.text = ""
-                                par.clear()
-                            #
-                        elif (
-                            opstr.find("rmt") >= 0
-                            or opstr.find("rmc") >= 0
-                            or opstr.find("rmr") >= 0
-                            or opstr.find("rmo") >= 0
-                        ):
-                            inverted = (
-                                opstr.find("rmt!") >= 0
-                                or opstr.find("rmc!") >= 0
-                                or opstr.find("rmr!") >= 0
-                                or opstr.find("rmo!") >= 0
-                            )
-                            cleanresult = True
-                            canBlank = False
-                            tbl = None
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or inverted and exprfalse
-                            ):
-                                par = p_obj._parent
-                                gran = par._parent
-                                if isinstance(par, docx.table._Cell):
-                                    tbl = par._parent
-                                elif isinstance(gran, docx.table._Cell):
-                                    tbl = gran._parent
-                                #
-                                if tbl is not None:
-                                    if opstr.find("rmc") >= 0:
-                                        gran.text = ""
-                                    #
-                                    if opstr.find("rmr") >= 0:
-                                        rowcnt = 0
-                                        totalrows = len(tbl.rows)
-                                        for r in tbl.rows:
-                                            rowcnt += 1
-                                            for c in r.cells:
-                                                if id(c._element) == id(gran._element):
-                                                    parent = r._tr.find("..")
-                                                    s.table_removerow_list.append(
-                                                        {
-                                                            "xmlptr": tbl,
-                                                            "rowptr": r,
-                                                            "row": rowcnt,
-                                                            "total": totalrows,
-                                                            "tableid": p_tableid,
-                                                        }
-                                                    )
-
-                                                    if parent is not None:
-                                                        parent.remove(r._tr)
-                                                        break
-                                                    #
-                                                #
-                                            #
-                                        #
-                                    #
-                                    if opstr.find("rmo") >= 0:
-                                        canBlank = False
-                                        for col in tbl.columns:
-                                            found = False
-                                            for c in col.cells:
-                                                if id(c._element) == id(gran._element):
-                                                    found = True
-                                                    break
-                                                #
-                                            #
-                                            if found:
-                                                for c in col.cells:
-                                                    c.text = ""
-                                                #
-                                            #
-                                        #
-                                    #
-                                    if opstr.find("rmt") >= 0:
-                                        p = tbl._parent
-                                        if p is not None:
-                                            p._element.remove(tbl._element)
-                                        #
-                                    #
-                                #
-                            #
-                        elif opstr.find("border") >= 0:
-                            canBlank = False
-                            inverted = opstr.find("border!") >= 0
-                            borderopts = opstr[len("border") + 1 :]
-                            cleanresult = True
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or inverted and exprfalse
-                            ):
-                                par = p_obj._parent
-                                gran = par._parent
-                                if isinstance(gran, docx.table._Cell):
-                                    bde = ""
-                                    try:
-                                        xcell = gran._element
-
-                                        fmt = """<?xml version="1.0"?>
-                    <w:tcBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-                    """
-
-                                        if borderopts.find("db") >= 0:
-                                            fmt += """<w:bottom w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-                                        elif borderopts.find("b") >= 0:
-                                            fmt += """<w:bottom w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-
-                                        if borderopts.find("dt") >= 0:
-                                            fmt += """<w:top w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-                                        elif borderopts.find("t") >= 0:
-                                            fmt += """<w:top w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-
-                                        if borderopts.find("dl") >= 0:
-                                            fmt += """<w:left w:val="sindoublegle" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-                                        elif borderopts.find("l") >= 0:
-                                            fmt += """<w:left w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-
-                                        if borderopts.find("dr") >= 0:
-                                            fmt += """<w:right w:val="double" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-                                        elif borderopts.find("r") >= 0:
-                                            fmt += """<w:right w:val="single" w:color="auto" w:space="0" w:sz="4"/>"""
-                                        #
-
-                                        fmt += """</w:tcBorders>"""
-                                        bde = LET.fromstring(fmt)
-                                        ptr = xcell.find("tcPr")
-                                        if ptr is None:
-                                            ptr = LET.fromstring(
-                                                """<?xml version="1.0"?>
-                    <w:tcPr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-                    </w:tcPr>
-                    """
-                                            )
-                                            xcell.append(ptr)
-                                        #
-                                        ptr.append(bde)
-                                    except Exception as e:
-                                        raise Exception(
-                                            "Failed to change border settings. {}\r\n{}".format(
-                                                e, bde
-                                            )
-                                        )
-                                    #
-                                #
-                            #
-                        elif opstr.find("addrows") >= 0 and exprtrue:
-                            canBlank = False
-                            borderopts = opstr[len("addrows") + 1 :]
-                            cleanresult = True
-
-                            newrowcnt = int(borderopts.strip(" "))
-                            if isinstance(p_obj, docx.text.run.Run):
-                                par = p_obj._parent
-                                gran = par._parent
-                                if isinstance(gran, docx.table._Cell):
-                                    tbl = gran._parent
-                                    for i in range(newrowcnt):
-                                        tbl.add_row()
-                                    #
-                                #
-                            #
-                        elif opstr.find("bold") >= 0:
-                            canBlank = False
-                            inverted = opstr.find("bold!") >= 0
-                            borderopts = opstr[len("bold") + 1 :]
-                            cleanresult = True
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or inverted and exprfalse
-                            ):
-                                par = p_obj._parent
-                                font = p_obj.font
-                                if font is not None:
-                                    font.bold = True
-                                #
-                            #
-                        elif opstr.find("italic") >= 0:
-                            canBlank = False
-                            inverted = opstr.find("italic!") >= 0
-                            borderopts = opstr[len("italic") + 1 :]
-                            cleanresult = True
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or inverted and exprfalse
-                            ):
-                                par = p_obj._parent
-                                font = p_obj.font
-                                if font is not None:
-                                    font.italic = True
-                                #
-                            #
-                        elif opstr.find("underline") >= 0:
-                            canBlank = False
-                            inverted = opstr.find("underline!") >= 0
-                            borderopts = opstr[len("underline") + 1 :]
-                            cleanresult = True
-                            if isinstance(p_obj, docx.text.run.Run) and (
-                                exprtrue or inverted and exprfalse
-                            ):
-                                par = p_obj._parent
-                                font = p_obj.font
-                                if font is not None:
-                                    font.underline = True
-                                #
-                            #
-                        #
-                        # -----------------------------------------------------------[CHANGE ID: 29879]  25/10/2021 16:03 Begin
-                        elif opstr.find("hide") >= 0:
-                            inverted = opstr.find("hide!") >= 0
-                            opts = opstr[len("hide") + 1 :]
-                            times = tryInt(opts)
-                            cleanresult = True
-                            # sqlmsg("Hide {} for {} op: {}".format(m_str,times, opts ))
-                            if isinstance(p_obj, docx.text.run.Run):
-                                par = p_obj._parent
-                                sib = None
-                                for i in range(times + 1):
-                                    if inverted:
-                                        sib = p_obj._element.getnext()
-                                    else:
-                                        sib = p_obj._element.getprevious()
-                                    #
-                                    if sib is None:
-                                        break
-                                    #
-                                    par.remove(sib)
-                                #
-                                p_obj.text = ""
-                            #
-                        #
-                        # -----------------------------------------------------------[CHANGE ID: 29879]  25/10/2021 16:03 End
-                        elif opstr.find("fmt") >= 0:
-                            borderopts = opstr[len("fmt") + 1 :]
-                            ops = borderopts.split(",")
-                            cleanresult = True
-
-                            if isinstance(p_obj, docx.text.run.Run):
-                                tmpstr = newstr
-                                if len(ops) > 1:
-                                    fmt = "{:" + ops[0] + ",." + ops[1] + "f}"
-                                elif len(ops) == 1:
-                                    fmt = "{:" + ops[0] + ",.2f}"
-                                else:
-                                    fmt = "{:.2f}"
-                                #
-                                try:
-
-                                    floatval = tryFloat(tmpstr, "0")
-                                    if floatval > 0:
-                                        tmpstr = fmt.format(floatval)
-                                        sqlmsg(
-                                            "Eval format floatval:{} opstrings:{} borderopts:{} tmpstr: {}".format(
-                                                floatval, opstrings, borderopts, tmpstr
-                                            ),
-                                            p_type="local notice",
-                                        )
-
-                                        newstr = tmpstr
-                                        m_str = tmpstr
-                                        found = True
-                                        break
-                                    #
-                                except Exception as e:
-                                    raise "Failed to format string to float: {}".format(
-                                        p_obj.text
-                                    )
-                                #
-                            #
-                    # end for ops
-
-                    if exitloop == 1:
-                        continue
-                    if exitloop == 2:
-                        break
-
-                    if cleanresult:
-                        newstr = ""
-                    #
-                    m_str = (
-                        m_str[:eval_tag_start]
-                        + newstr
-                        + m_str[eval_tag_end + len(s.TAG_E_EVAL) :]
-                    )
-
-                    found = True
-                else:
-                    if eval_tag_start >= 0:
-                        sqlmsg(
-                            "Eval open tag {} found without ending tag in this run->{}".format(
-                                s.TAG_S_EVAL, m_str
-                            ),
-                            p_type="local notice",
-                        )
-                    #
-                    break
-                #
-            except Exception as e:
-                if glo_showerrors:
-                    m_str = '[! Expression Failed: {} in "{}"!]'.format(e, exprstr)
-                else:
-                    m_str = ""
-                #
-                err = True
-            #
-        #
-        if found and isinstance(p_obj, docx.text.run.Run):
-            # sqlmsg("Blank Text: {}".format(m_str ))
-            # if canBlank and len(m_str) < 2:
-            #   m_str = "."
-            #   s.post_format.append({"tag": 'eval', "obj": p_obj, "type": 'default'})
-            # #
-            if len(m_str) < 2:
-                m_str = ""
-            #
-            p_obj.text = m_str
-        elif err and isinstance(p_obj, docx.text.run.Run):
-            p_obj.text = m_str
-        #
-        # sqlmsg("Eval[Return] m_str:[{}]".format(m_str ))
-        return m_str
 
     #
 

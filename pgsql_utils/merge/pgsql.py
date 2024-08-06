@@ -112,7 +112,11 @@ def execute_merge_sql(
             objMerge.mode = p_mode
             objMerge.programmode = p_programmode
             check_merge_inputs(
-                objMerge, p_template_filename, p_template_blob, p_src_filename
+                objMerge,
+                p_template_filename,
+                p_template_blob,
+                p_src_filename,
+                p_jsonset,
             )
             p_result = objMerge.execute()
         #

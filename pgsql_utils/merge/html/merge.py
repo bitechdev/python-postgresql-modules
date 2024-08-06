@@ -29,6 +29,63 @@ import datetime
 import math
 
 
+from ..tags import (
+    TAG_S_SP,
+    TAG_E_SP,
+    TAG_S,
+    TAG_E,
+    TAG_S_OLD,
+    TAG_E_OLD,
+    TAG_S_EVAL,
+    TAG_E_EVAL,
+    TAG_S_INPLACE,
+    TAG_E_INPLACE,
+    TAG_S_ALIASDECL,
+    TAG_E_ALIASDECL,
+    TAG_D_ALIASDECL,
+    TAG_S_ALIASUSE,
+    TAG_E_ALIASUSE,
+    TAG_S_POSTOP,
+    TAG_E_POSTOP,
+    TAG_S_TBLM,
+    TAG_E_TBLM,
+    TAG_ERR,
+    STR_ERR,
+    TAG_SPLT,
+    TAG_RULESPLT,
+    STR_TAG_RMBD,
+    STR_TAG_RMBC,
+    STR_TAG_RMDR,
+    STR_TAG_FREETBL,
+    STR_TAG_ESIGN,
+    STR_TAG_LIMITROW,
+    STR_TAG_TBLSEARCH_RM,
+    TTYP_ROOT,
+    TTYP_FIELD,
+    TTYP_TBLFIELD,
+    TTYP_TBLROOT,
+    TTYP_AGGFIELD,
+    TTYP_PIC,
+    TTYP_SPECIAL,
+    TTYP_FILTER,
+    TTYP_CONDITIONAL,
+    TTYP_DOCREPLACE,
+    TTYP_EMBEDHTML,
+    OP_TAGS,
+    CELL_OP_TAGS,
+    TAG_COND_RMR,
+    TAG_COND_RMC,
+    TAG_COND_CLR,
+    TAG_COND_RTBL,
+    TAG_COND_TBL_DISTINCT,
+    TAG_COND_RMP,
+    INCH_TO_PIXEL,
+)
+
+if "plpy" not in globals():
+    import pgsql_utils.pgproc.wrap_plpy as plpy
+#
+
 class MergeToolHTML(MergeTool):
     """HTML Merge Tool"""
 
@@ -158,7 +215,7 @@ class MergeToolHTML(MergeTool):
             if tag.attrib:
                 for attrib in tag.attrib:
                     val = tag.get(attrib)
-                    if val.find(s.TAG_S) >= 0:
+                    if val.find(TAG_S) >= 0:
                         tags["doctags"].extend(s.peek_str(val))
                     #
                 #
@@ -315,7 +372,7 @@ class MergeToolHTML(MergeTool):
 
         for attrib in tag.attrib:
             val = tag.get(attrib)
-            if val.find(s.TAG_S) >= 0:
+            if val.find(TAG_S) >= 0:
                 dat = s.tag_value_replace(val, None, s.inputdata.get("fields"))
                 # dat = s.str_value_replace(str(val), None, s.inputdata.get('fields'))
                 # sqlmsg("Get attrib {}={} to {} Fields: {}".format(attrib,val, dat , s.inputdata.get('fields')), p_type="local error")
@@ -330,18 +387,18 @@ class MergeToolHTML(MergeTool):
     def cleanuptags(s, p_text):
         m_text = p_text
         for i in range(1, 50):
-            start = m_text.find(s.TAG_S)
+            start = m_text.find(TAG_S)
             if start < 0:
                 break
             if start >= 0:
-                end = m_text.find(s.TAG_E)
+                end = m_text.find(TAG_E)
                 if end < 0:
                     break
-                m_tag = m_text[start : end + len(s.TAG_E)]
+                m_tag = m_text[start : end + len(TAG_E)]
                 if m_tag.lower().find(s.STR_TAG_ESIGN) >= 0:
                     break
                 #
-                m_text = m_text[:start] + m_text[end + len(s.TAG_E) :]
+                m_text = m_text[:start] + m_text[end + len(TAG_E) :]
                 plpy.notice("Cleaned Empty Leftover tag: {}".format(m_tag))
 
                 # sqlmsg("Cleaned Empty Leftover tag: {}".format(m_tag))
@@ -443,7 +500,7 @@ class MergeToolHTML(MergeTool):
             #
 
             if (
-                not p_xmltext.find(s.TAG_S) >= 0
+                not p_xmltext.find(TAG_S) >= 0
             ):  # abort this line/object, we have not tags.
                 opdata["error"] = "No tags found."
                 return opdata
@@ -454,32 +511,32 @@ class MergeToolHTML(MergeTool):
                 fields = s.inputdata.get("fields")
             #
 
-            if p_xmltext.find(s.TAG_S + s.STR_TAG_RMBD + s.TAG_E) >= 0:
+            if p_xmltext.find(TAG_S + s.STR_TAG_RMBD + TAG_E) >= 0:
                 opdata["rmblnk"] = 1
             #
 
-            if p_xmltext.find(s.TAG_S + s.STR_TAG_RMBC + s.TAG_E) >= 0:
+            if p_xmltext.find(TAG_S + s.STR_TAG_RMBC + TAG_E) >= 0:
                 opdata["rmblnkcol"] = 1
             #
 
-            if p_xmltext.find(s.TAG_S + s.STR_TAG_RMDR + s.TAG_E) >= 0:
+            if p_xmltext.find(TAG_S + s.STR_TAG_RMDR + TAG_E) >= 0:
                 opdata["rmdr"] = 1
             #
 
             if (
                 p_xmltext is not None
-                and p_xmltext.find(s.TAG_S + s.STR_TAG_LIMITROW) >= 0
+                and p_xmltext.find(TAG_S + s.STR_TAG_LIMITROW) >= 0
             ):
-                istart = p_xmltext.find(s.TAG_S + s.STR_TAG_LIMITROW)
-                iend = p_xmltext.find(s.TAG_E, istart)
-                parts = (p_xmltext[istart + len(s.TAG_S) : iend]).split(":")
+                istart = p_xmltext.find(TAG_S + s.STR_TAG_LIMITROW)
+                iend = p_xmltext.find(TAG_E, istart)
+                parts = (p_xmltext[istart + len(TAG_S) : iend]).split(":")
                 if len(parts) > 1:
                     opdata["limitrow"] = tryInt(parts[1])
                 else:
                     opdata["limitrow"] = 1
                 #
 
-                p_xmltext = p_xmltext[:istart] + p_xmltext[iend + len(s.TAG_E) :]
+                p_xmltext = p_xmltext[:istart] + p_xmltext[iend + len(TAG_E) :]
 
             #
 
@@ -537,14 +594,14 @@ class MergeToolHTML(MergeTool):
                     #
 
                     if found and val.find(":picture:") >= 0:
-                        tagtype = s.TTYP_PIC
+                        tagtype = TTYP_PIC
                         val = val.replace(":picture:", "")
                     #
                     # sqlmsg("Tag: {} Tagtype: {} Node:{} {} ".format(p_idx,tagtype,nodevalue, tagvalue[p_idx]))
 
                     if (
                         val is not None
-                        and tagtype == s.TTYP_EMBEDHTML
+                        and tagtype == TTYP_EMBEDHTML
                         and p_xmltext.find(tag) >= 0
                         or (tag.find("usr_htmlsig") >= 0 and p_xmltext.find(tag) >= 0)
                     ):
@@ -572,8 +629,8 @@ class MergeToolHTML(MergeTool):
                         #   p_xmltext = p_xmltext.replace(tag, val)
                         # #
                     #
-                    # if tagtype == s.TTYP_PIC: continue
-                    if tagtype == s.TTYP_PIC:
+                    # if tagtype == TTYP_PIC: continue
+                    if tagtype == TTYP_PIC:
 
                         if (
                             p_xmltext is not None
@@ -678,20 +735,20 @@ class MergeToolHTML(MergeTool):
                         continue
                     #
 
-                    if tagtype == s.TTYP_TBLROOT:
+                    if tagtype == TTYP_TBLROOT:
                         continue  # we do not handle inner values here.
-                    if tagtype == s.TTYP_CONDITIONAL:
+                    if tagtype == TTYP_CONDITIONAL:
                         if p_xmltext is not None and p_xmltext.find(tag) >= 0:
                             if tryInt(tagvalue) > 0:
                                 if tag.find("rmr!") >= 0:
-                                    val = s.TAG_COND_RMR
+                                    val = TAG_COND_RMR
                                     # sqlmsg("Will Remove Row: {} , {}, p_str={}".format(tag, tagvalue, nodevalue))
                                 elif tag.find("rmc!") >= 0:
-                                    val = s.TAG_COND_RMC
+                                    val = TAG_COND_RMC
                                 elif tag.find("cc!") >= 0:
-                                    val = s.TAG_COND_CLR
+                                    val = TAG_COND_CLR
                                 elif tag.find("!rmp!") >= 0:
-                                    val = s.TAG_COND_RMP
+                                    val = TAG_COND_RMP
                                 else:
                                     continue
                                 #
@@ -1130,7 +1187,7 @@ class MergeToolHTML(MergeTool):
                         cell, rn, p_fields, "table", p_tblid, colidx
                     )
 
-                    if cell.text.find(s.TAG_COND_TBL_DISTINCT) >= 0:
+                    if cell.text.find(TAG_COND_TBL_DISTINCT) >= 0:
                         if distinctdata.get(str(rn), None) is None:
                             distinctdata[str(rn)] = {}
                         distinctdata[str(rn)][str(colidx)] = opdata.get("value", "")
@@ -1248,7 +1305,7 @@ class MergeToolHTML(MergeTool):
                         break
                     #
                     # handle blank row
-                    elif bodytext.find(s.TAG_S + "blnkrow" + s.TAG_E) >= 0:
+                    elif bodytext.find(TAG_S + "blnkrow" + TAG_E) >= 0:
                         templaterows[rownr] = {
                             "row": row,
                             "rowcopy": copy.deepcopy(row),
@@ -1330,7 +1387,7 @@ class MergeToolHTML(MergeTool):
             i_s = p_str.lower().find(p_tag_s, p_start)
             i_e = p_str.lower().find(p_tag_e, i_s)
 
-            if i_s >= 0 and p_str[i_s + 1 : i_s + 1 + len(s.TAG_ERR)] == s.TAG_ERR:
+            if i_s >= 0 and p_str[i_s + 1 : i_s + 1 + len(TAG_ERR)] == TAG_ERR:
                 fulltag = p_str[i_s : i_e + len(p_tag_e)]
                 s.add_fault("not found", fulltag)
 
@@ -1368,7 +1425,7 @@ class MergeToolHTML(MergeTool):
                         #
                     #
                     if found:
-                        # p_str = p_str[:i_s+len(p_tag_s)] + s.TAG_ERR + p_str[i_s+len(p_tag_s):]
+                        # p_str = p_str[:i_s+len(p_tag_s)] + TAG_ERR + p_str[i_s+len(p_tag_s):]
                         p_str = p_str  # we are not replacing it anymore. Just add error below.
                         applyError = True
                         # s.add_fault("not found", fulltag)
@@ -1386,9 +1443,7 @@ class MergeToolHTML(MergeTool):
                     )
                 #
                 p_str = (
-                    p_str[: i_s + len(p_tag_s)]
-                    + s.TAG_ERR
-                    + p_str[i_s + len(p_tag_s) :]
+                    p_str[: i_s + len(p_tag_s)] + TAG_ERR + p_str[i_s + len(p_tag_s) :]
                 )
                 p_str = search_str(
                     p_str,
@@ -1403,7 +1458,7 @@ class MergeToolHTML(MergeTool):
 
         ###
 
-        search_str(content, s.TAG_S, s.TAG_E)
+        search_str(content, TAG_S, TAG_E)
 
         with open(s.destfilename, "wb") as f:
             data = f.write(content.encode("utf8"))
@@ -1476,7 +1531,7 @@ class MergeToolHTML(MergeTool):
             #
             if tagtype in (0, 1, 3):
                 content += "<p><b>{}:</b><br />Tag:{}".format(
-                    display_name, tag.strip(s.TAG_S).strip(s.TAG_E)
+                    display_name, tag.strip(TAG_S).strip(TAG_E)
                 )
                 content += "<br />Tooltip:{}<br />".format(tooltip)
                 content += "<br />Data:[{}]<br />".format(tag)

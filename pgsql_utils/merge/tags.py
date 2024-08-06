@@ -3,7 +3,7 @@
 ### Please refer to the license details in the package.
 
 # Global vars
-
+INCH_TO_PIXEL = 0.0104166667
 TAG_S_SP = chr(171)
 TAG_E_SP = chr(187)
 TAG_S = "[*"
